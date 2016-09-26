@@ -1,1 +1,1 @@
-Makefile.libretro
+include Makefile.libretro
