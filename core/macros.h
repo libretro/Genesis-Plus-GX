@@ -53,6 +53,18 @@
 #define ALIGNED_(x) __attribute__ ((aligned(x)))
 #endif
 
+#ifdef __LIBRETRO__
+#include <streams/file_stream_transforms.h>
+
+#define cdStream            RFILE
+#define cdStreamOpen(fname) rfopen(fname, "rb")
+#define cdStreamClose       rfclose
+#define cdStreamRead        rfread
+#define cdStreamSeek        rfseek
+#define cdStreamTell        rftell
+#define cdStreamGets        rfgets
+#endif
+
 /* Default CD image file access (read-only) functions */
 /* If you need to override default stdio.h functions with custom filesystem API,
    redefine following macros in platform specific include file (osd.h) or Makefile
