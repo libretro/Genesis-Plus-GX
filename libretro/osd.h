@@ -52,6 +52,8 @@ typedef unsigned char bool;
 #include <stdlib.h>
 #include <string.h>
 
+#include <streams/file_stream_transforms.h>
+
 #define MAX_INPUTS 8
 #define MAX_KEYS 8
 #define MAXPATHLEN 1024
@@ -131,5 +133,13 @@ extern char MS_BIOS_JP[256];
 extern void osd_input_update(void);
 extern int load_archive(char *filename, unsigned char *buffer, int maxsize, char *extension);
 extern void ROMCheatUpdate(void);
+
+#define cdStream            RFILE
+#define cdStreamOpen(fname) rfopen(fname, "rb")
+#define cdStreamClose       rfclose
+#define cdStreamRead        rfread
+#define cdStreamSeek        rfseek
+#define cdStreamTell        rftell
+#define cdStreamGets        rfgets
 
 #endif /* _OSD_H */
