@@ -76,8 +76,7 @@
 
 /* signed and unsigned int must be at least 32 bits wide */
 #define sint   signed   int
-#ifndef IS_IOS_OR_MAC_OS    
-/* this is defined already in Mac OS/iOS, both of which are BSD - this looks like its for Linux */
+#ifndef __APPLE__
 #define uint   unsigned int
 #endif
 #if M68K_USE_64_BIT
