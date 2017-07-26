@@ -39,7 +39,7 @@ RETRO_BEGIN_DECLS
 #define fgets rfgets
 #define fwrite rfwrite
 
-static INLINE RFILE* rfopen(const char *path, char *mode)
+INLINE RFILE* rfopen(const char *path, char *mode)
 {
    unsigned int retro_mode = RFILE_MODE_READ_TEXT;
    if (strstr(mode, "r"))
@@ -54,33 +54,33 @@ static INLINE RFILE* rfopen(const char *path, char *mode)
    return filestream_open(path, retro_mode, -1);
 }
 
-static INLINE int rfclose(RFILE* stream)
+INLINE int rfclose(RFILE* stream)
 {
    return filestream_close(stream);
 }
 
-static INLINE long rftell(RFILE* stream)
+INLINE long rftell(RFILE* stream)
 {
    return filestream_tell(stream);
 }
 
-static INLINE int rfseek(RFILE* stream, long offset, int origin)
+INLINE int rfseek(RFILE* stream, long offset, int origin)
 {
    return filestream_seek(stream, offset, origin);
 }
 
-static INLINE size_t rfread(void* buffer,
+INLINE size_t rfread(void* buffer,
    size_t elementSize, size_t elementCount, RFILE* stream)
 {
    return filestream_read(stream, buffer, elementSize*elementCount);
 }
 
-static INLINE char *rfgets(char *buffer, int maxCount, FILE* stream)
+INLINE char *rfgets(char *buffer, int maxCount, FILE* stream)
 {
    return filestream_gets(stream, buffer, maxCount);
 }
 
-static INLINE size_t rfwrite(void const* buffer,
+INLINE size_t rfwrite(void const* buffer,
    size_t elementSize, size_t elementCount, RFILE* stream)
 {
    return filestream_write(stream, buffer, elementSize*elementCount);
