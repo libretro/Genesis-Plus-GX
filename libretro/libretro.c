@@ -148,6 +148,8 @@ static char ggvalidchars[] = "ABCDEFGHJKLMNPRSTVWXYZ0123456789";
 
 static char arvalidchars[] = "0123456789ABCDEF";
 
+#define SOUND_FREQUENCY 44100
+
 /************************************
  * Genesis Plus GX implementation
  ************************************/
@@ -499,7 +501,7 @@ static void config_default(void)
    config.hq_fm          = 1; /* high-quality FM resampling (slower) */
    config.hq_psg         = 1; /* high-quality PSG resampling (slower) */
    config.filter         = 0; /* no filter */
-   config.lp_range       = 0x9999; /* 0.6 in 16.16 fixed point */
+   config.lp_range       = 0x6666; /* 0.4 instead of 0.6 in 16.16 fixed point (unidentified bug workaround) */
    config.low_freq       = 880;
    config.high_freq      = 5000;
    config.lg             = 1.0;
@@ -921,7 +923,7 @@ static void check_variables(void)
           };
 
           /* framerate might have changed, reinitialize audio timings */
-          audio_set_rate(44100, 0);
+          audio_set_rate(SOUND_FREQUENCY, 0);
           
           /* reinitialize I/O region register */
           if (system_hw == SYSTEM_MD)
@@ -1024,6 +1026,15 @@ static void check_variables(void)
         memcpy(sram.sram, temp, sizeof(temp));
       }
     }
+  }
+
+  var.key = "genesis_plus_gx_lowpass_filter";
+  environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
+  {
+    if (!strcmp(var.value, "ON"))
+      config.filter = 1;
+    else
+      config.filter = 0;
   }
 
   var.key = "genesis_plus_gx_dac_bits";
@@ -1156,7 +1167,7 @@ static void check_variables(void)
 
   if (reinit)
   {
-    audio_init(44100, 0);
+    audio_init(SOUND_FREQUENCY, 0);
     memcpy(temp, sram.sram, sizeof(temp));
     system_init();
     system_reset();
@@ -1573,6 +1584,7 @@ void retro_set_environment(retro_environment_t cb)
       { "genesis_plus_gx_lock_on", "Cartridge lock-on; disabled|game genie|action replay (pro)|sonic & knuckles" },
       { "genesis_plus_gx_ym2413", "Master System FM; auto|disabled|enabled" },
       { "genesis_plus_gx_dac_bits", "YM2612 DAC quantization; disabled|enabled" },
+      { "genesis_plus_gx_lowpass_filter", "Low-pass filter; ON|OFF"},
       { "genesis_plus_gx_blargg_ntsc_filter", "Blargg NTSC filter; disabled|monochrome|composite|svideo|rgb" },
       { "genesis_plus_gx_lcd_filter", "LCD Ghosting filter; disabled|enabled" },
       { "genesis_plus_gx_overscan", "Borders; disabled|top/bottom|left/right|full" },
@@ -1770,7 +1782,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    info->geometry.max_height    = 576;
    info->geometry.aspect_ratio  = vaspect_ratio;
    info->timing.fps             = (double)(system_clock) / (double)lines_per_frame / (double)MCYCLES_PER_LINE;
-   info->timing.sample_rate     = 44100;
+   info->timing.sample_rate     = SOUND_FREQUENCY;
 }
 
 void retro_set_controller_port_device(unsigned port, unsigned device)
@@ -2087,7 +2099,7 @@ bool retro_load_game(const struct retro_game_info *info)
       }
    }
 
-   audio_init(44100,0);
+   audio_init(SOUND_FREQUENCY,0);
    system_init();
    system_reset();
    is_running = false;
