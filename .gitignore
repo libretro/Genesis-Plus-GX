@@ -1,6 +1,7 @@
 .vs/
 Debug/
 Release/
+builds/
 
 psp2/*.o
 psp2/*.elf
@@ -11,4 +12,3 @@ sdl/gen_sdl
 sdl/gen_sdl2
 sdl/build_sdl
 sdl/build_sdl2
-
