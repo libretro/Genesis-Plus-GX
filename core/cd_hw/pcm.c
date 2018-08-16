@@ -37,11 +37,6 @@
  ****************************************************************************************/
 #include "shared.h"
 
-extern int8 audio_hard_disable;
-#define SILENT_RUN_PCM_ADDRESS
-
-extern int8 reset_do_not_clear_buffers;
-
 #define PCM_SCYCLES_RATIO (384 * 4)
 
 #define pcm scd.pcm_hw
@@ -56,10 +51,7 @@ void pcm_init(double clock, int samplerate)
 void pcm_reset(void)
 {
   /* reset chip & clear external RAM */
-  if (!reset_do_not_clear_buffers)
-  {
-    memset(&pcm, 0, sizeof(pcm_t));
-  }
+  memset(&pcm, 0, sizeof(pcm_t));
 
   /* reset default bank */
   pcm.bank = pcm.ram;
@@ -118,47 +110,6 @@ int pcm_context_load(uint8 *state)
   return bufferptr;
 }
 
-static void pcm_run_silent(unsigned int length)
-{
-#ifdef SILENT_RUN_PCM_ADDRESS
-  /* Silent Version - Only updates sample address */
-  if (pcm.enabled)
-  {
-    int i, j;
-
-    /* run eight PCM channels */
-    for (j = 0; j<8; j++)
-    {
-      /* check if channel is enabled and increment is greater than zero */
-      if (pcm.status & (1 << j) && pcm.chan[j].fd.w > 0)
-      {
-        for (i = 0; i<length; i++)
-        {
-          /* read from current WAVE RAM address */
-          short data = pcm.ram[(pcm.chan[j].addr >> 11) & 0xffff];
-
-          /* loop data ? */
-          if (data == 0xff)
-          {
-            /* reset WAVE RAM address */
-            pcm.chan[j].addr = pcm.chan[j].ls.w << 11;
-          }
-          else
-          {
-            /* increment WAVE RAM address */
-            pcm.chan[j].addr += pcm.chan[j].fd.w;
-          }
-        }
-      }
-    }
-  }
-#endif
-  /* end of blip buffer frame */
-  blip_end_frame(snd.blips[1], length);
-
-  pcm.cycles += length * PCM_SCYCLES_RATIO;
-}
-
 void pcm_run(unsigned int length)
 {
 #ifdef LOG_PCM
@@ -168,12 +119,6 @@ void pcm_run(unsigned int length)
   /* previous audio outputs */
   int prev_l = pcm.out[0];
   int prev_r = pcm.out[1];
-
-  if (audio_hard_disable)
-  {
-    pcm_run_silent(length);
-    return;
-  }
 
   /* check if PCM chip is running */
   if (pcm.enabled)
