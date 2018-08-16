@@ -760,15 +760,10 @@ int md_cart_context_save(uint8 *state)
       /* SRAM */
       state[bufferptr++] = 0xff;
     }
-    else if (base >= cart.rom && base < cart.rom + MAXROMSIZE)
+    else
     {
       /* ROM */
       state[bufferptr++] = ((base - cart.rom) >> 16) & 0xff;
-    }
-    else
-    {
-      /* TMSS or special cartridge rom */
-      state[bufferptr++] = 0xfe;
     }
   }
 
@@ -810,7 +805,7 @@ int md_cart_context_load(uint8 *state)
       zbank_memory_map[i].write   = sram_write_byte;
 
     }
-    else if (offset < (MAXROMSIZE >> 16))
+    else
     {
       /* check if SRAM was mapped there before loading state */
       if (m68k.memory_map[i].base == sram.sram)
@@ -825,10 +820,6 @@ int md_cart_context_load(uint8 *state)
 
       /* ROM */
       m68k.memory_map[i].base = cart.rom + (offset << 16);
-    }
-    else
-    {
-      /* TMSS or Special cartridge ROM mapped in by reset, leave it mapped */
     }
   }
 

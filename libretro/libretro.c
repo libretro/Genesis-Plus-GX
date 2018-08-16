@@ -3,7 +3,7 @@
  *
  *  Genesis Plus GX libretro port
  *
- *  Copyright Eke-Eke (2007-2017)
+ *  Copyright Eke-Eke (2007-2018)
  *
  *  Copyright Daniel De Matteis (2012-2016)
  *
@@ -70,12 +70,11 @@
 #define RETRO_DEVICE_JUSTIFIERS           RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_LIGHTGUN, 2)
 #define RETRO_DEVICE_GRAPHIC_BOARD        RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_POINTER, 0)
 
-#include <libretro.h>
-#include <streams/file_stream.h>
-
 #include "shared.h"
+#include "libretro.h"
 #include "md_ntsc.h"
 #include "sms_ntsc.h"
+#include <streams/file_stream.h>
 
 #define STATIC_ASSERT(name, test) typedef struct { int assert_[(test)?1:-1]; } assert_ ## name ## _
 #define M68K_MAX_CYCLES 1107
@@ -202,11 +201,10 @@ void error(char * fmt, ...)
 
 int load_archive(char *filename, unsigned char *buffer, int maxsize, char *extension)
 {
-  int64_t left = 0;
-  int64_t size = 0;
+  int size, left;
 
   /* Open file */
-  RFILE *fd    = filestream_open(filename, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+  RFILE *fd = filestream_open(filename, RFILE_MODE_READ, -1);
 
   if (!fd)
   {
@@ -242,7 +240,9 @@ int load_archive(char *filename, unsigned char *buffer, int maxsize, char *exten
     return 0;
   }
   else if (size > maxsize)
+  {
     size = maxsize;
+  }
 
   if (log_cb)
     log_cb(RETRO_LOG_INFO, "INFORMATION - Loading %d bytes ...\n", size);
@@ -509,28 +509,9 @@ void osd_input_update(void)
 
 static void draw_cursor(int16_t x, int16_t y, uint16_t color)
 {
-   int i;
-
-   /* crosshair center position */   
-   uint16_t *ptr = (uint16_t *)bitmap.data + ((bitmap.viewport.y + y) * bitmap.width) + x + bitmap.viewport.x;
-
-   /* default crosshair dimension */
-   int x_start = x - 3;
-   int x_end  = x + 3;
-   int y_start = y - 3;
-   int y_end = y + 3;
-
-   /* framebuffer limits */
-   if (x_start < -bitmap.viewport.x) x_start = -bitmap.viewport.x;
-   if (x_end >= (bitmap.viewport.w + bitmap.viewport.x)) x_end = bitmap.viewport.w + bitmap.viewport.x - 1;
-   if (y_start < -bitmap.viewport.y) y_start = -bitmap.viewport.y;
-   if (y_end >= (bitmap.viewport.h + bitmap.viewport.y)) y_end = bitmap.viewport.h + bitmap.viewport.y - 1;
-
-   /* draw crosshair */
-   for (i = (x_start - x); i <= (x_end - x); i++)
-      ptr[i] = (i & 1) ? color : 0xffff;
-   for (i = (y_start - y); i <= (y_end - y); i++)
-      ptr[i * bitmap.width] = (i & 1) ? color : 0xffff;
+  uint16_t *ptr = (uint16_t *)bitmap.data + ((bitmap.viewport.y + y) * bitmap.width) + x + bitmap.viewport.x;
+  ptr[-3*bitmap.width] = ptr[-bitmap.width] = ptr[bitmap.width] = ptr[3*bitmap.width] = ptr[-3] = ptr[-1] = ptr[1] = ptr[3] = color;
+  ptr[-2*bitmap.width] = ptr[2*bitmap.width] = ptr[-2] = ptr[2] = ptr[0] = 0xffff;
 }
 
 static void init_bitmap(void)
@@ -605,13 +586,13 @@ static void bram_load(void)
     switch (region_code)
     {
        case REGION_JAPAN_NTSC:
-          fp = filestream_open(CD_BRAM_JP, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+          fp = filestream_open(CD_BRAM_JP, RFILE_MODE_READ, -1);
           break;
        case REGION_EUROPE:
-          fp = filestream_open(CD_BRAM_EU, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+          fp = filestream_open(CD_BRAM_EU, RFILE_MODE_READ, -1);
           break;
        case REGION_USA:
-          fp = filestream_open(CD_BRAM_US, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+          fp = filestream_open(CD_BRAM_US, RFILE_MODE_READ, -1);
           break;
        default:
           return;
@@ -651,7 +632,7 @@ static void bram_load(void)
     /* automatically load cartridge backup RAM (if enabled) */
     if (scd.cartridge.id)
     {
-      fp = filestream_open(CART_BRAM, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+      fp = filestream_open(CART_BRAM, RFILE_MODE_READ, -1);
       if (fp != NULL)
       {
         int filesize = scd.cartridge.mask + 1;
@@ -707,13 +688,13 @@ static void bram_save(void)
         switch (region_code)
         {
           case REGION_JAPAN_NTSC:
-            fp = filestream_open(CD_BRAM_JP, RETRO_VFS_FILE_ACCESS_WRITE, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+            fp = filestream_open(CD_BRAM_JP, RFILE_MODE_WRITE, -1);
             break;
           case REGION_EUROPE:
-            fp = filestream_open(CD_BRAM_EU, RETRO_VFS_FILE_ACCESS_WRITE, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+            fp = filestream_open(CD_BRAM_EU, RFILE_MODE_WRITE, -1);
             break;
           case REGION_USA:
-            fp = filestream_open(CD_BRAM_US, RETRO_VFS_FILE_ACCESS_WRITE, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+            fp = filestream_open(CD_BRAM_US, RFILE_MODE_WRITE, -1);
             break;
           default:
             return;
@@ -736,7 +717,7 @@ static void bram_save(void)
       /* check if it is correctly formatted before saving */
       if (!memcmp(scd.cartridge.area + scd.cartridge.mask + 1 - 0x20, brm_format + 0x20, 0x20))
       {
-        fp = filestream_open(CART_BRAM, RETRO_VFS_FILE_ACCESS_WRITE, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+        fp = filestream_open(CART_BRAM, RFILE_MODE_WRITE, -1);
         if (fp != NULL)
         {
           int filesize = scd.cartridge.mask + 1;
@@ -889,7 +870,7 @@ static void check_variables(void)
     char slash = '/';
 #endif
 
-   if (!strcmp(var.value, "per bios"))
+   if (!var.value || !strcmp(var.value, "per bios"))
    {
      snprintf(CD_BRAM_EU, sizeof(CD_BRAM_EU), "%s%cscd_E.brm", save_dir, slash);
      snprintf(CD_BRAM_US, sizeof(CD_BRAM_US), "%s%cscd_U.brm", save_dir, slash);
@@ -907,19 +888,19 @@ static void check_variables(void)
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
     orig_value = config.system;
-    if (!strcmp(var.value, "sg-1000"))
+    if (var.value && !strcmp(var.value, "sg-1000"))
       config.system = SYSTEM_SG;
-    else if (!strcmp(var.value, "sg-1000 II"))
+    else if (var.value && !strcmp(var.value, "sg-1000 II"))
       config.system = SYSTEM_SGII;
-    else if (!strcmp(var.value, "mark-III"))
+    else if (var.value && !strcmp(var.value, "mark-III"))
       config.system = SYSTEM_MARKIII;
-    else if (!strcmp(var.value, "master system"))
+    else if (var.value && !strcmp(var.value, "master system"))
       config.system = SYSTEM_SMS;
-    else if (!strcmp(var.value, "master system II"))
+    else if (var.value && !strcmp(var.value, "master system II"))
       config.system = SYSTEM_SMS2;
-    else if (!strcmp(var.value, "game gear"))
+    else if (var.value && !strcmp(var.value, "game gear"))
       config.system = SYSTEM_GG;
-    else if (!strcmp(var.value, "mega drive / genesis"))
+    else if (var.value && !strcmp(var.value, "mega drive / genesis"))
       config.system = SYSTEM_MD;
     else
       config.system = 0;
@@ -956,7 +937,7 @@ static void check_variables(void)
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
     orig_value = config.bios;
-    if (!strcmp(var.value, "enabled"))
+    if (var.value && !strcmp(var.value, "enabled"))
       config.bios = 3;
     else
       config.bios = 0;
@@ -974,11 +955,11 @@ static void check_variables(void)
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
     orig_value = config.region_detect;
-    if (!strcmp(var.value, "ntsc-u"))
+    if (var.value && !strcmp(var.value, "ntsc-u"))
       config.region_detect = 1;
-    else if (!strcmp(var.value, "pal"))
+    else if (var.value && !strcmp(var.value, "pal"))
       config.region_detect = 2;
-    else if (!strcmp(var.value, "ntsc-j"))
+    else if (var.value && !strcmp(var.value, "ntsc-j"))
       config.region_detect = 3;
     else
       config.region_detect = 0;
@@ -1054,7 +1035,7 @@ static void check_variables(void)
   var.key = "genesis_plus_gx_force_dtack";
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
-    if (!strcmp(var.value, "enabled"))
+    if (!var.value || !strcmp(var.value, "enabled"))
       config.force_dtack = 1;
     else
       config.force_dtack = 0;
@@ -1063,7 +1044,7 @@ static void check_variables(void)
   var.key = "genesis_plus_gx_addr_error";
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
-    if (!strcmp(var.value, "enabled"))
+    if (!var.value || !strcmp(var.value, "enabled"))
       m68k.aerr_enabled = config.addr_error = 1;
     else
       m68k.aerr_enabled = config.addr_error = 0;
@@ -1073,11 +1054,11 @@ static void check_variables(void)
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
     orig_value = config.lock_on;
-    if (!strcmp(var.value, "game genie"))
+    if (var.value && !strcmp(var.value, "game genie"))
       config.lock_on = TYPE_GG;
-    else if (!strcmp(var.value, "action replay (pro)"))
+    else if (var.value && !strcmp(var.value, "action replay (pro)"))
       config.lock_on = TYPE_AR;
-    else if (!strcmp(var.value, "sonic & knuckles"))
+    else if (var.value && !strcmp(var.value, "sonic & knuckles"))
       config.lock_on = TYPE_SK;
     else
       config.lock_on = 0;
@@ -1093,9 +1074,9 @@ static void check_variables(void)
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
     orig_value = config.ym2413;
-    if (!strcmp(var.value, "enabled"))
+    if (var.value && !strcmp(var.value, "enabled"))
       config.ym2413 = 1;
-    else if (!strcmp(var.value, "disabled"))
+    else if (var.value && !strcmp(var.value, "disabled"))
       config.ym2413 = 0;
     else
       config.ym2413 = 2;
@@ -1114,20 +1095,20 @@ static void check_variables(void)
   var.key = "genesis_plus_gx_sound_output";
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
-    if (!strcmp(var.value, "mono"))
+    if (var.value && !strcmp(var.value, "mono"))
       config.mono = 1;
-    else if (!strcmp(var.value, "stereo"))
+    else if (!var.value || !strcmp(var.value, "stereo"))
       config.mono = 0; 
   }
 
   var.key = "genesis_plus_gx_audio_filter";
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
-    if (!strcmp(var.value, "low-pass"))
+    if (var.value && !strcmp(var.value, "low-pass"))
       config.filter = 1;
 
 #if HAVE_EQ 
-    else if (!strcmp(var.value, "EQ"))
+    else if (var.value && !strcmp(var.value, "EQ"))
       config.filter = 2;
 #endif
 
@@ -1138,14 +1119,14 @@ static void check_variables(void)
   var.key = "genesis_plus_gx_lowpass_range";
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
-    config.lp_range = (atoi(var.value) * 65536) / 100;
+    config.lp_range = (!var.value) ? 60 : ((atoi(var.value) * 65536) / 100);
   }
 
 #if HAVE_EQ
   var.key = "genesis_plus_gx_audio_eq_low";
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
-    uint8_t new_lg = atoi(var.value);
+    uint8_t new_lg = (!var.value) ? 100 : atoi(var.value);
     if (new_lg != config.lg) restart_eq = true;
     config.lg = new_lg;
   }
@@ -1153,7 +1134,7 @@ static void check_variables(void)
   var.key = "genesis_plus_gx_audio_eq_mid";
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
-    uint8_t new_mg = atoi(var.value);
+    uint8_t new_mg = (!var.value) ? 100 : atoi(var.value);
     if (new_mg != config.mg) restart_eq = true;
     config.mg = new_mg;
   }
@@ -1161,7 +1142,7 @@ static void check_variables(void)
   var.key = "genesis_plus_gx_audio_eq_high";
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
-    uint8_t new_hg = atoi(var.value);
+    uint8_t new_hg = (!var.value) ? 100 : atoi(var.value);
     if (new_hg != config.hg) restart_eq = true;
     config.hg = new_hg;
 
@@ -1173,20 +1154,15 @@ static void check_variables(void)
   {
 #ifdef HAVE_YM3438_CORE
     orig_value = config.ym3438;
-    if (!strcmp(var.value, "nuked (ym2612)"))
+    if (var.value && !strcmp(var.value, "nuked (ym2612)"))
     {
-      OPN2_SetChipType(ym3438_type_ym2612);
+      OPN2_SetChipType(ym3438_mode_ym2612);
       config.ym3438 = 1;
     }
-    else if (!strcmp(var.value, "nuked (asic ym3438)"))
+    else if (var.value && !strcmp(var.value, "nuked (ym3438)"))
     {
-      OPN2_SetChipType(ym3438_type_asic);
+      OPN2_SetChipType(ym3438_mode_readmode);
       config.ym3438 = 2;
-    }
-    else if (!strcmp(var.value, "nuked (discrete ym3438)"))
-    {
-      OPN2_SetChipType(ym3438_type_discrete);
-      config.ym3438 = 3;
     }
     else
     {
@@ -1200,12 +1176,12 @@ static void check_variables(void)
     }
 #endif
 
-    if (!strcmp(var.value, "mame (ym2612)"))
+    if (!var.value || !strcmp(var.value, "mame (ym2612)"))
     {
       config.ym2612 = YM2612_DISCRETE;
       YM2612Config(YM2612_DISCRETE);
     }
-    else if (!strcmp(var.value, "mame (asic ym3438)"))
+    else if (var.value && !strcmp(var.value, "mame (asic ym3438)"))
     {
       config.ym2612 = YM2612_INTEGRATED;
       YM2612Config(YM2612_INTEGRATED);
@@ -1222,27 +1198,27 @@ static void check_variables(void)
   {
     orig_value = config.ntsc;
 
-    if (strcmp(var.value, "disabled") == 0)
+    if (!var.value || !strcmp(var.value, "disabled"))
       config.ntsc = 0;
-    else if (strcmp(var.value, "monochrome") == 0)
+    else if (var.value && !strcmp(var.value, "monochrome"))
     {
       config.ntsc = 1;
       sms_ntsc_init(sms_ntsc, &sms_ntsc_monochrome);
       md_ntsc_init(md_ntsc,   &md_ntsc_monochrome);
     }
-    else if (strcmp(var.value, "composite") == 0)
+    else if (var.value && !strcmp(var.value, "composite"))
     {
       config.ntsc = 1;
       sms_ntsc_init(sms_ntsc, &sms_ntsc_composite);
       md_ntsc_init(md_ntsc,   &md_ntsc_composite);
     }
-    else if (strcmp(var.value, "svideo") == 0)
+    else if (var.value && !strcmp(var.value, "svideo"))
     {
       config.ntsc = 1;
       sms_ntsc_init(sms_ntsc, &sms_ntsc_svideo);
       md_ntsc_init(md_ntsc,   &md_ntsc_svideo);
     }
-    else if (strcmp(var.value, "rgb") == 0)
+    else if (var.value && !strcmp(var.value, "rgb"))
     {
       config.ntsc = 1;
       sms_ntsc_init(sms_ntsc, &sms_ntsc_rgb);
@@ -1256,9 +1232,9 @@ static void check_variables(void)
   var.key = "genesis_plus_gx_lcd_filter";
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
-    if (strcmp(var.value, "disabled") == 0)
+    if (!var.value || !strcmp(var.value, "disabled"))
       config.lcd = 0;
-    else if (strcmp(var.value, "enabled") == 0)
+    else if (var.value && !strcmp(var.value, "enabled"))
       config.lcd = (uint8)(0.80 * 256);
   }
 
@@ -1266,13 +1242,13 @@ static void check_variables(void)
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
     orig_value = config.overscan;
-    if (strcmp(var.value, "disabled") == 0)
+    if (!var.value || !strcmp(var.value, "disabled"))
       config.overscan = 0;
-    else if (strcmp(var.value, "top/bottom") == 0)
+    else if (var.value && !strcmp(var.value, "top/bottom"))
       config.overscan = 1;
-    else if (strcmp(var.value, "left/right") == 0)
+    else if (var.value && !strcmp(var.value, "left/right"))
       config.overscan = 2;
-    else if (strcmp(var.value, "full") == 0)
+    else if (var.value && !strcmp(var.value, "full"))
       config.overscan = 3;
     if (orig_value != config.overscan)
       update_viewports = true;
@@ -1282,9 +1258,9 @@ static void check_variables(void)
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
     orig_value = config.gg_extra;
-    if (strcmp(var.value, "disabled") == 0)
+    if (!var.value || !strcmp(var.value, "disabled"))
       config.gg_extra = 0;
-    else if (strcmp(var.value, "enabled") == 0)
+    else if (var.value && !strcmp(var.value, "enabled"))
       config.gg_extra = 1;
     if (orig_value != config.gg_extra)
       update_viewports = true;
@@ -1294,9 +1270,9 @@ static void check_variables(void)
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
     orig_value = config.aspect_ratio;
-    if (strcmp(var.value, "NTSC PAR") == 0)
+    if (var.value && !strcmp(var.value, "NTSC PAR"))
       config.aspect_ratio = 1;
-    else if (strcmp(var.value, "PAL PAR") == 0)
+    else if (var.value && !strcmp(var.value, "PAL PAR"))
       config.aspect_ratio = 2;
     else
       config.aspect_ratio = 0;
@@ -1308,7 +1284,7 @@ static void check_variables(void)
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
     orig_value = config.render;
-    if (strcmp(var.value, "single field") == 0)
+    if (!var.value || !strcmp(var.value, "single field"))
       config.render = 0;
     else
       config.render = 1;
@@ -1319,7 +1295,7 @@ static void check_variables(void)
   var.key = "genesis_plus_gx_gun_cursor";
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
-    if (strcmp(var.value, "disabled") == 0)
+    if (!var.value || !strcmp(var.value, "disabled"))
       config.gun_cursor = 0;
     else
       config.gun_cursor = 1;
@@ -1328,7 +1304,7 @@ static void check_variables(void)
   var.key = "genesis_plus_gx_invert_mouse";
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
-    if (strcmp(var.value, "disabled") == 0)
+    if (!var.value || !strcmp(var.value, "disabled"))
       config.invert_mouse = 0;
     else
       config.invert_mouse = 1;
@@ -1338,15 +1314,15 @@ static void check_variables(void)
   var.key = "genesis_plus_gx_overclock";
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
-    if (strcmp(var.value, "100%") == 0)
+    if (!var.value || !strcmp(var.value, "100%"))
       config.overclock = 100;
-    else if (strcmp(var.value, "125%") == 0)
+    else if (var.value && !strcmp(var.value, "125%"))
       config.overclock = 125;
-    else if (strcmp(var.value, "150%") == 0)
+    else if (var.value && !strcmp(var.value, "150%"))
       config.overclock = 150;
-    else if (strcmp(var.value, "175%") == 0)
+    else if (var.value && !strcmp(var.value, "175%"))
       config.overclock = 175;
-    else if (strcmp(var.value, "200%") == 0)
+    else if (var.value && !strcmp(var.value, "200%"))
       config.overclock = 200;
 
     if (system_hw)
@@ -1357,7 +1333,7 @@ static void check_variables(void)
   var.key = "genesis_plus_gx_no_sprite_limit";
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
-    if (strcmp(var.value, "disabled") == 0)
+    if (!var.value || !strcmp(var.value, "disabled"))
       config.no_sprite_limit = 0;
     else
       config.no_sprite_limit = 1;
@@ -1775,7 +1751,6 @@ unsigned retro_api_version(void) { return RETRO_API_VERSION; }
 
 void retro_set_environment(retro_environment_t cb)
 {
-   struct retro_vfs_interface_info vfs_iface_info;
    static const struct retro_variable vars[] = {
       { "genesis_plus_gx_system_hw", "System hardware; auto|sg-1000|sg-1000 II|mark-III|master system|master system II|game gear|mega drive / genesis" },
       { "genesis_plus_gx_region_detect", "System region; auto|ntsc-u|pal|ntsc-j" },
@@ -1786,7 +1761,7 @@ void retro_set_environment(retro_environment_t cb)
       { "genesis_plus_gx_lock_on", "Cartridge lock-on; disabled|game genie|action replay (pro)|sonic & knuckles" },
       { "genesis_plus_gx_ym2413", "Master System FM (YM2413); auto|disabled|enabled" },
 #ifdef HAVE_YM3438_CORE
-      { "genesis_plus_gx_ym2612", "Mega Drive / Genesis FM; mame (ym2612)|mame (asic ym3438)|mame (enhanced ym3438)|nuked (ym2612)|nuked (asic ym3438)|nuked (discrete ym3438)" },
+      { "genesis_plus_gx_ym2612", "Mega Drive / Genesis FM; mame (ym2612)|mame (asic ym3438)|mame (enhanced ym3438)|nuked (ym2612)|nuked (ym3438)" },
 #else
       { "genesis_plus_gx_ym2612", "Mega Drive / Genesis FM; mame (ym2612)|mame (asic ym3438)|mame (enhanced ym3438)" },
 #endif
@@ -1974,12 +1949,6 @@ void retro_set_environment(retro_environment_t cb)
    cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)vars);
    cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
    cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void*)desc);
-
-   vfs_iface_info.required_interface_version = 1;
-   vfs_iface_info.iface                      = NULL;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &vfs_iface_info))
-	   filestream_vfs_init(&vfs_iface_info);
-
 }
 
 void retro_set_video_refresh(retro_video_refresh_t cb) { video_cb = cb; }
@@ -2014,7 +1983,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 
 void retro_set_controller_port_device(unsigned port, unsigned device)
 {
-   if (port > 2)
+   if (port > 1)
      return;
 
    switch(device)
@@ -2144,45 +2113,23 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 
 size_t retro_serialize_size(void) { return STATE_SIZE; }
 
-extern int8 fast_savestates;
-
-bool get_fast_savestates(void)
-{
-   int result = -1;
-   bool okay = false;
-   okay = environ_cb(RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE, &result);
-   if (okay)
-   {
-      return 0 != (result & 4);
-   }
-   else
-   {
-      return 0;
-   }
-}
-
 bool retro_serialize(void *data, size_t size)
 { 
-   fast_savestates = get_fast_savestates();
    if (size != STATE_SIZE)
       return FALSE;
 
    state_save(data);
-   if (fast_savestates) save_sound_buffer();
 
    return TRUE;
 }
 
 bool retro_unserialize(const void *data, size_t size)
 {
-   fast_savestates = get_fast_savestates();
    if (size != STATE_SIZE)
       return FALSE;
 
    if (!state_load((uint8_t*)data))
       return FALSE;
-
-   if (fast_savestates) restore_sound_buffer();
 
 #ifdef HAVE_OVERCLOCK
    overclock_delay = OVERCLOCK_FRAME_DELAY;
@@ -2251,7 +2198,7 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
 bool retro_load_game(const struct retro_game_info *info)
 {
    int i;
-   char *dir       = NULL;
+   const char *dir = NULL;
 #if defined(_WIN32)
    char slash      = '\\';
 #else
@@ -2437,10 +2384,7 @@ size_t retro_get_memory_size(unsigned id)
         }
       }
       case RETRO_MEMORY_SYSTEM_RAM:
-         if (system_hw == SYSTEM_SMS || system_hw == SYSTEM_SMS2 || system_hw == SYSTEM_GG || system_hw == SYSTEM_GGMS)
-            return 0x02000;
-         else
-            return 0x10000;
+         return 0x10000;
       default:
          return 0;
    }
@@ -2483,15 +2427,8 @@ void retro_reset(void)
    gen_reset(0);
 }
 
-extern int8 audio_hard_disable;
-
-extern void sound_update_fm_function_pointers(void);
-
 void retro_run(void) 
 {
-   bool okay = false;
-   int result = -1;
-   int do_skip = 0;
    bool updated = false;
    is_running = true;
 
@@ -2501,47 +2438,17 @@ void retro_run(void)
       update_overclock();
 #endif
 
-   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated);
-   if (updated)
-   {
-      check_variables();
-      if (restart_eq)
-      {
-         audio_set_equalizer();
-         restart_eq = false;
-      }
-   }
-
-   okay = environ_cb(RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE, &result);
-   if (okay)
-   {
-      bool audioEnabled = 0 != (result & 2);
-      bool videoEnabled = 0 != (result & 1);
-      bool hardDisableAudio = 0 != (result & 8);
-      do_skip = !videoEnabled;
-      if (audio_hard_disable != hardDisableAudio)
-      {
-        audio_hard_disable = hardDisableAudio;
-        sound_update_fm_function_pointers();
-      }
-   }
-   else
-   {
-      do_skip = false;
-      audio_hard_disable = false;
-   }
-
    if (system_hw == SYSTEM_MCD)
    {
-      system_frame_scd(do_skip);
+      system_frame_scd(0);
    }
    else if ((system_hw & SYSTEM_PBC) == SYSTEM_MD)
    {
-      system_frame_gen(do_skip);
+      system_frame_gen(0);
    }
    else
    {
-      system_frame_sms(do_skip);
+      system_frame_sms(0);
    }
 
    if (bitmap.viewport.changed & 9)
@@ -2586,6 +2493,17 @@ void retro_run(void)
 
    video_cb(bitmap.data, vwidth, vheight, 720 * 2);
    audio_cb(soundbuffer, audio_update(soundbuffer));
+
+   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated);
+   if (updated)
+   {
+      check_variables();
+      if (restart_eq)
+      {
+         audio_set_equalizer();
+         restart_eq = false;
+      }
+   }
 }
 
 #undef  CHUNKSIZE
