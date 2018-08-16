@@ -44,6 +44,7 @@
 
 #ifdef _MSC_VER
 #include <stdio.h>
+typedef unsigned char bool;
 #define strncasecmp _strnicmp
 #endif
 
