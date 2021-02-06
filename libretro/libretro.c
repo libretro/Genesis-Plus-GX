@@ -1191,12 +1191,7 @@ static bool update_viewport(void)
       else
          vwidth = SMS_NTSC_OUT_WIDTH(vwidth);
    }
-   
-   if ((system_hw == SYSTEM_SMS || system_hw == SYSTEM_SMS2) && config.left_border)
-   {
-	   bitmap.viewport.x = (config.overscan & 2) ? 7 : -8;
-   }
-
+ 
    if (config.render && interlaced)
    {
       vheight = vheight * 2;
