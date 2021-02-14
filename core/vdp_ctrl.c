@@ -342,6 +342,7 @@ void vdp_reset(void)
   }
   else if ((system_hw == SYSTEM_SMS || system_hw == SYSTEM_SMS2) && config.left_border)
   {
+    /* Horizontal display area reduced to 240 when hiding the left border */
     bitmap.viewport.x = (config.overscan & 2) ? 7 : -8;
     bitmap.viewport.y = (config.overscan & 1) * 24 * (vdp_pal + 1);
   }
