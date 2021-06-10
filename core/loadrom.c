@@ -572,8 +572,15 @@ int load_rom(char *filename)
   size = cdd_load(filename, (char *)(cart.rom));
   if (size < 0)
   {
-    /* error opening file */
-    return (0);
+    /* error opening file
+     * do not treat this as a fatal error, since
+     * we may be loading content from memory,
+     * rather than a physical file
+     * in this case we assume that the ROM is not
+     * a CD image, and pass responsibility for
+     * handling it to the platform-specific
+     * load_archive() function */
+    size = 0;
   }
 
   /* CD image file ? */

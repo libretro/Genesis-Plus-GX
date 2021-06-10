@@ -3072,7 +3072,7 @@ bool retro_load_game(const struct retro_game_info *info)
       strncpy(content_path, info->path, sizeof(content_path));
       content_path[sizeof(content_path) - 1] = '\0';
 
-      if (ext = strrchr(info->path, '.'))
+      if ((ext = strrchr(info->path, '.')))
       {
          strncpy(content_ext, ext + 1, sizeof(content_ext));
          content_ext[sizeof(content_ext) - 1] = '\0';
