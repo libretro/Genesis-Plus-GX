@@ -151,19 +151,10 @@ ifneq (,$(findstring unix,$(platform)))
       PLATFORM_DEFINES += -mfloat-abi=hard -mfpu=neon-fp-armv8
    endif
 
-   # Raspberry Pi
+   # Raspberry Pi: modern GCC provides the right flags for each model.
    ifneq (,$(findstring rpi,$(platform)))
       ENDIANNESS_DEFINES += -DALIGN_LONG
-      CFLAGS += -fomit-frame-pointer
-      ifneq (,$(findstring rpi1,$(platform)))
-         PLATFORM_DEFINES += -DARM11 -marm -march=armv6j -mfpu=vfp -mfloat-abi=hard
-      else ifneq (,$(findstring rpi2,$(platform)))
-         PLATFORM_DEFINES += -DARM -marm -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
-      else ifneq (,$(findstring rpi3,$(platform)))
-         PLATFORM_DEFINES += -DARM -marm -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard
-      else ifneq (,$(findstring rpi4_64,$(platform)))
-         PLATFORM_DEFINES += -DARM -march=armv8-a+crc+simd -mtune=cortex-a72
-      endif
+      FLAGS += -DARM -march=native -mcpu=native -ftree-vectorize -pipe -fomit-frame-pointer
    endif
    
 # (armv8 a35, hard point, neon based) ###
