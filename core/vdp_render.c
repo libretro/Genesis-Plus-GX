@@ -1666,7 +1666,7 @@ void render_bg_m5(int line)
 void render_bg_m5_vs(int line)
 {
   int column;
-  int v_offset;
+  int v_offset, prev_v_offset;
   uint32 atex, atbuf, *src, *dst;
   uint32 v_line, next_v_line, *nt;
 
@@ -1732,17 +1732,21 @@ void render_bg_m5_vs(int line)
     /* Plane B vertical scroll */
 #ifdef LSB_FIRST
     v_line = (line + (vs[column] >> 16)) & pf_row_mask;
-    next_v_line = (line + (vs[MIN(column + 1, end)] >> 16)) & pf_row_mask;
+    next_v_line = (line + (vs[MIN(column + 1, end - 1)] >> 16)) & pf_row_mask;
 #else
     v_line = (line + vs[column]) & pf_row_mask;
-    next_v_line = (line + vs[MIN(column + 1, end)]) & pf_row_mask;
+    next_v_line = (line + vs[MIN(column + 1, end - 1)]) & pf_row_mask;
 #endif
 
     if (config.enhanced_vscroll == 0) {
       v_offset = 0;
     } else {
+      prev_v_offset = v_offset;
       v_offset = ((int)next_v_line - (int)v_line) / 2;
       v_offset = (abs(v_offset) >= config.enhanced_vscroll_limit) ? 0 : v_offset;
+      if (column == end - 1) {
+        v_offset = prev_v_offset;
+      }
     }
 
     /* Plane B name table */
@@ -1847,17 +1851,21 @@ void render_bg_m5_vs(int line)
       /* Plane A vertical scroll */
 #ifdef LSB_FIRST
       v_line = (line + vs[column]) & pf_row_mask;
-      next_v_line = (line + vs[MIN(column + 1, end)]) & pf_row_mask;
+      next_v_line = (line + vs[MIN(column + 1, end - 1)]) & pf_row_mask;
 #else
       v_line = (line + (vs[column] >> 16)) & pf_row_mask;
-      next_v_line = (line + (vs[MIN(column + 1, end)] >> 16)) & pf_row_mask;
+      next_v_line = (line + (vs[MIN(column + 1, end - 1)] >> 16)) & pf_row_mask;
 #endif
 
       if (config.enhanced_vscroll == 0) {
         v_offset = 0;
       } else {
+        prev_v_offset = v_offset;
         v_offset = ((int)next_v_line - (int)v_line) / 2;
         v_offset = (abs(v_offset) >= config.enhanced_vscroll_limit) ? 0 : v_offset;
+        if (column == end - 1) {
+          v_offset = prev_v_offset;
+        }
       }
 
       /* Plane A name table */
