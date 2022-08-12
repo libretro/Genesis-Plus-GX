@@ -286,12 +286,12 @@ static unsigned int OPLL2413_Read(unsigned int cycles, unsigned int a)
 
 #endif
 
-// #ifdef __LIBRETRO__
+#ifdef __LIBRETRO__
 static void NULL_YM_Update(int *buffer, int length) { }
 static void NULL_fm_reset(unsigned int cycles) { }
 static void NULL_fm_write(unsigned int cycles, unsigned int address, unsigned int data) { }
 static unsigned int NULL_fm_read(unsigned int cycles, unsigned int address) { return 0; }
-// #endif
+#endif
 
 void sound_init( void )
 {

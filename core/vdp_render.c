@@ -6,6 +6,7 @@
  *
  *  Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003  Charles Mac Donald (original code)
  *  Copyright (C) 2007-2016  Eke-Eke (Genesis Plus GX)
+ *  Copyright (C) 2022  AlexKiri (enhanced vscroll mode rendering function)
  *
  *  Redistribution and use of this code or any derivative works are permitted
  *  provided that the following conditions are met:
@@ -1849,6 +1850,7 @@ void render_bg_m5_vs(int line)
   merge(&linebuf[1][0x20], &linebuf[0][0x20], &linebuf[0][0x20], lut[(reg[12] & 0x08) >> 2], bitmap.viewport.w);
 }
 
+/* Enhanced function that allows each cell to be vscrolled individually, instead of being limited to 2-cell */
 void render_bg_m5_vs_enhanced(int line)
 {
   int column, v_offset;
@@ -1925,6 +1927,8 @@ void render_bg_m5_vs_enhanced(int line)
 
     if (column != end - 1)
     {
+      // The offset of the intermediary cell is an average of the offsets of the current 2-cell and the next 2-cell.
+      // For the last column, the previously calculated offset is used
       v_offset = ((int)next_v_line - (int)v_line) / 2;
       v_offset = (abs(v_offset) >= config.enhanced_vscroll_limit) ? 0 : v_offset;
     }
@@ -1936,7 +1940,6 @@ void render_bg_m5_vs_enhanced(int line)
     v_line = (v_line & 7) << 3;
 
     atbuf = nt[index & pf_col_mask];
-    //DRAW_COLUMN(atbuf, v_line)
 #ifdef LSB_FIRST
     GET_LSB_TILE(atbuf, v_line)
 #else
@@ -2064,7 +2067,6 @@ void render_bg_m5_vs_enhanced(int line)
       v_line = (v_line & 7) << 3;
 
       atbuf = nt[index & pf_col_mask];
-      //DRAW_COLUMN(atbuf, v_line)
 #ifdef LSB_FIRST
       GET_LSB_TILE(atbuf, v_line)
 #else
@@ -2949,7 +2951,6 @@ void render_bg_m5_vs_enhanced(int line)
       v_line = (v_line & 7) << 3;
 
       atbuf = nt[index & pf_col_mask];
-      //DRAW_COLUMN(atbuf, v_line)
 #ifdef LSB_FIRST
       GET_LSB_TILE(atbuf, v_line)
 #else
@@ -3075,7 +3076,6 @@ void render_bg_m5_vs_enhanced(int line)
     v_line = (v_line & 7) << 3;
 
     atbuf = nt[index & pf_col_mask];
-    //DRAW_BG_COLUMN(atbuf, v_line, xscroll, yscroll)
 #ifdef ALIGN_LONG
 #ifdef LSB_FIRST
   GET_LSB_TILE(atbuf, v_line)
