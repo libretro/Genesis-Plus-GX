@@ -136,6 +136,7 @@ typedef struct
   uint8 enhanced_vscroll;
   uint8 enhanced_vscroll_limit;
   uint8 cd_latency;
+  bool cd_precache;
 #ifdef USE_PER_SOUND_CHANNELS_CONFIG
   unsigned int psg_ch_volumes[4];
   int32 md_ch_volumes[6];
@@ -161,6 +162,7 @@ extern char MS_BIOS_JP[256];
 extern void osd_input_update(void);
 extern int load_archive(char *filename, unsigned char *buffer, int maxsize, char *extension);
 extern void ROMCheatUpdate(void);
+extern retro_log_printf_t log_cb;
 
 #ifndef cdStream
 #define cdStream            RFILE

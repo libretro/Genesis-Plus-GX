@@ -3,7 +3,7 @@
  *  Main 68k bus handlers
  *
  *  Copyright (C) 1998-2003  Charles Mac Donald (original code)
- *  Copyright (C) 2007-2022  Eke-Eke (Genesis Plus GX)
+ *  Copyright (C) 2007-2024  Eke-Eke (Genesis Plus GX)
  *
  *  Redistribution and use of this code or any derivative works are permitted
  *  provided that the following conditions are met:
@@ -140,6 +140,9 @@ unsigned int m68k_lockup_r_16 (unsigned int address)
 
 unsigned int z80_read_byte(unsigned int address)
 {
+  /* Z80 bus access latency */
+  m68k.cycles += 1 * 7;
+
   switch ((address >> 13) & 3)
   {
     case 2:   /* YM2612 */
@@ -172,6 +175,9 @@ unsigned int z80_read_word(unsigned int address)
 
 void z80_write_byte(unsigned int address, unsigned int data)
 {
+  /* Z80 bus access latency (fixes Pacman 2: New Adventures sound engine crashes & Puyo Puyo 2 crash when exiting option menu) */
+  m68k.cycles += 1 * 7;
+
   switch ((address >> 13) & 3)
   {
     case 2: /* YM2612 */
@@ -207,7 +213,6 @@ void z80_write_byte(unsigned int address, unsigned int data)
     default: /* ZRAM */
     {
       zram[address & 0x1FFF] = data;
-      m68k.cycles += 2 * 7; /* ZRAM access latency (fixes Pacman 2: New Adventures & Puyo Puyo 2) */
       return;
     }
   }
@@ -236,11 +241,11 @@ static void m68k_poll_detect(unsigned int reg_mask)
         if (m68k.poll.detected & 1)
         {
           /* idle MAIN-CPU until register is modified */
-          m68k.cycles = m68k.cycle_end;
-          m68k.stopped = reg_mask;
 #ifdef LOG_SCD
           error("m68k stopped from %d cycles\n", m68k.cycles);
 #endif
+          m68k.cycles = m68k.cycle_end;
+          m68k.stopped = reg_mask;
         }
         else
         {
@@ -298,6 +303,24 @@ static void m68k_poll_sync(unsigned int reg_mask)
   m68k.poll.detected &= ~reg_mask;
 }
 
+static void s68k_sync(void)
+{
+  if (!s68k.stopped)
+  {
+    /* relative SUB-CPU cycle counter */
+    unsigned int cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;
+
+    /* save current SUB-CPU end cycle count (recursive execution is possible) */
+    int end_cycle = s68k.cycle_end;
+
+    /* sync SUB-CPU with MAIN-CPU */
+    s68k_run(cycles);
+
+    /* restore SUB-CPU end cycle count */
+    s68k.cycle_end = end_cycle;
+  }
+}
+
 /*--------------------------------------------------------------------------*/
 /* I/O Control                                                              */
 /*--------------------------------------------------------------------------*/
@@ -349,27 +372,30 @@ unsigned int ctrl_io_read_byte(unsigned int address)
         if (index == 0x03)
         {
           m68k_poll_detect(1<<0x03);
-          return scd.regs[0x03>>1].byte.l;
+
+          /* mask PM0 and PM1 bits on MAIN-CPU side */
+          return scd.regs[0x03>>1].byte.l & 0xc7;
+        }
+
+        /* CDC Mode */
+        if (index == 0x04)
+        {
+          /* sync SUB-CPU with MAIN-CPU (fixes MCD-verificator CDC DMA3 Test #2) */
+          s68k_sync();
+          return scd.regs[0x04>>1].byte.h & 0xc7;
+        }
+
+        /* CDC register address (not accessible from MAIN-CPU) */
+        if (index == 0x05)
+        {
+          return 0x00;
         }
 
         /* SUB-CPU communication flags */
         if (index == 0x0f)
         {
-          if (!s68k.stopped)
-          {
-            /* relative SUB-CPU cycle counter */
-            unsigned int cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;
-
-            /* save current SUB-CPU end cycle count (recursive execution is possible) */
-            int end_cycle = s68k.cycle_end;
-
-            /* sync SUB-CPU with MAIN-CPU (Dracula Unleashed w/ Sega CD Model 2 Boot ROM) */
-            s68k_run(cycles);
-
-            /* restore SUB-CPU end cycle count */
-            s68k.cycle_end = end_cycle;
-          }
-
+          /* sync SUB-CPU with MAIN-CPU (fixes Dracula Unleashed with Sega CD Model 2 Boot ROM) */
+          s68k_sync();
           m68k_poll_detect(1<<0x0f);
           return scd.regs[0x0f>>1].byte.l;
         }
@@ -503,13 +529,20 @@ unsigned int ctrl_io_read_word(unsigned int address)
         if (index == 0x02)
         {
           m68k_poll_detect(1<<0x03);
-          return scd.regs[0x03>>1].w;
+
+          /* mask PM0 and PM1 bits on MAIN-CPU side */
+          return scd.regs[0x03>>1].w & 0xffc7;
         }
 
         /* CDC host data (word access only ?) */
         if (index == 0x08)
         {
-          return cdc_host_r();
+          /* sync SUB-CPU with MAIN-CPU if CDC data transfer is not yet enabled (fixes MCD-verificator CDC INIT Test #4) */
+          if (!(scd.regs[0x04>>1].byte.h & 0x40))
+          {
+            s68k_sync();
+          }
+          return cdc_host_r(CDC_MAIN_CPU_ACCESS);
         }
 
         /* H-INT vector (word access only ?) */
@@ -528,27 +561,20 @@ unsigned int ctrl_io_read_word(unsigned int address)
           return (scd.regs[0x0c>>1].w + ((cycles - scd.stopwatch) / TIMERS_SCYCLES_RATIO)) & 0xfff;
         }
 
+        /* CDC Mode (CDC register address not accessible from MAIN-CPU) */
+        if (index == 0x04)
+        {
+          return (scd.regs[index >> 1].byte.h << 8);
+        }
+
         /* default registers */
         if (index < 0x30)
         {
           /* SUB-CPU communication words */
           if (index >= 0x20)
           {
-            if (!s68k.stopped)
-            {
-              /* relative SUB-CPU cycle counter */
-              unsigned int cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;
-
-              /* save current SUB-CPU end cycle count (recursive execution is possible) */
-              int end_cycle = s68k.cycle_end;
-
-              /* sync SUB-CPU with MAIN-CPU (Soul Star) */
-              s68k_run(cycles);
-
-              /* restore SUB-CPU end cycle count */
-              s68k.cycle_end = end_cycle;
-            }
-
+            /* sync SUB-CPU with MAIN-CPU (fixes Soul Star) */
+            s68k_sync();
             m68k_poll_detect(3 << (index - 0x10));
           }
           
@@ -659,20 +685,8 @@ void ctrl_io_write_byte(unsigned int address, unsigned int data)
               /* level 2 interrupt enabled ? */
               if (scd.regs[0x32>>1].byte.l & 0x04)
               {
-                if (!s68k.stopped)
-                {
-                  /* relative SUB-CPU cycle counter */
-                  unsigned int cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;
-
-                  /* save current SUB-CPU end cycle count (recursive execution is possible) */
-                  int end_cycle = s68k.cycle_end;
-
-                  /* sync SUB-CPU with MAIN-CPU (Earnest Evans, Fhey Area) */
-                  s68k_run(cycles);
-
-                  /* restore SUB-CPU end cycle count */
-                  s68k.cycle_end = end_cycle;
-                }
+                /* sync SUB-CPU with MAIN-CPU (fixes Earnest Evans, Fhey Area) */
+                s68k_sync();
 
                 /* set IFL2 flag */
                 scd.regs[0x00].byte.h |= 0x01;
@@ -696,29 +710,40 @@ void ctrl_io_write_byte(unsigned int address, unsigned int data)
             /* RESET bit */
             if (data & 0x01)
             {
-              /* trigger reset on 0->1 transition */
+              /* SUB-CPU reset is triggered on /RESET input 0->1 transition */
               if (!(scd.regs[0x00].byte.l & 0x01))
               {
-                /* reset SUB-CPU */
                 s68k_pulse_reset();
               }
 
               /* BUSREQ bit */
               if (data & 0x02)
               {
-                /* SUB-CPU bus requested */
+                /* SUB-CPU is halted (/HALT input is asserted) */
                 s68k_pulse_halt();
               }
               else
               {
-                /* SUB-CPU bus released */
+                /* SUB-CPU is running (/HALT input is released) */
                 s68k_clear_halt();
               }
+
+              /* update BUSREQ and RESET bits */
+              scd.regs[0x00].byte.l = data & 0x03;
             }
             else
             {
-              /* SUB-CPU is halted while !RESET is asserted */
+              /* SUB-CPU is halted (/HALT and /RESET inputs are asserted) */
               s68k_pulse_halt();
+
+              /* RESET bit is cleared and BUSREQ bit is set to 1 (verified on real hardware) */
+              scd.regs[0x00].byte.l = 0x02;
+            }
+
+            /* BUSREQ bit remains set to 0 if SUB-CPU is halted while stopped (verified on real hardware) */
+            if (s68k.stopped & 0x01)
+            {
+              scd.regs[0x00].byte.l &= ~0x02;
             }
 
             /* check if SUB-CPU halt status has changed */
@@ -727,8 +752,8 @@ void ctrl_io_write_byte(unsigned int address, unsigned int data)
               /* PRG-RAM (128KB bank) is normally mapped to $020000-$03FFFF (resp. $420000-$43FFFF) */
               unsigned int base = scd.cartridge.boot + 0x02;
 
-              /* PRG-RAM can only be accessed from MAIN 68K & Z80 when SUB-CPU is halted (Dungeon Explorer USA version) */
-              if ((data & 0x03) != 0x01)
+              /* PRG-RAM can only be accessed from MAIN-CPU & Z80 when BUSREQ bit is set (Dungeon Explorer USA version) */
+              if (scd.regs[0x00].byte.l & 0x02)
               {
                 m68k.memory_map[base].read8   = m68k.memory_map[base+1].read8   = NULL;
                 m68k.memory_map[base].read16  = m68k.memory_map[base+1].read16  = NULL;
@@ -736,6 +761,17 @@ void ctrl_io_write_byte(unsigned int address, unsigned int data)
                 m68k.memory_map[base].write16 = m68k.memory_map[base+1].write16 = NULL;
                 zbank_memory_map[base].read   = zbank_memory_map[base+1].read   = NULL;
                 zbank_memory_map[base].write  = zbank_memory_map[base+1].write  = NULL;
+
+                /* check if CDC DMA to PRG-RAM is running */
+                if (cdc.dma_w == prg_ram_dma_w)
+                {
+                  /* synchronize CDC DMA with MAIN-CPU */
+                  cdc_dma_update((m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE);
+
+                  /* halt CDC DMA to PRG-RAM (if still running) */
+                  cdc.halted_dma_w = cdc.dma_w;
+                  cdc.dma_w = 0;
+                }
               }
               else
               {
@@ -745,10 +781,26 @@ void ctrl_io_write_byte(unsigned int address, unsigned int data)
                 m68k.memory_map[base].write16 = m68k.memory_map[base+1].write16 = m68k_unused_16_w;
                 zbank_memory_map[base].read   = zbank_memory_map[base+1].read   = zbank_unused_r;
                 zbank_memory_map[base].write  = zbank_memory_map[base+1].write  = zbank_unused_w;
+
+                /* check if CDC DMA to PRG-RAM is halted */
+                if (cdc.halted_dma_w == prg_ram_dma_w)
+                {
+                  /* relative SUB-CPU cycle counter */
+                  unsigned int cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;
+
+                  /* enable CDC DMA to PRG-RAM */
+                  cdc.dma_w = prg_ram_dma_w;
+                  cdc.halted_dma_w = 0;
+
+                  /* synchronize CDC DMA with MAIN-CPU (only if not already ahead) */
+                  if (cdc.cycles[0] < cycles)
+                  {
+                    cdc.cycles[0] = cycles;
+                  }
+                }
               }
             }
 
-            scd.regs[0x00].byte.l = data;
             return;
           }
 
@@ -790,24 +842,77 @@ void ctrl_io_write_byte(unsigned int address, unsigned int data)
               /* writing 0 to DMNA in 2M mode does nothing */
               if (data & 0x02)
               {
+                int i;
+
                 /* Word-RAM is assigned to SUB-CPU */
                 scd.dmna = 1;
+
+                /* MAIN-CPU: $200000-$23FFFF is unmapped */
+                for (i=scd.cartridge.boot+0x20; i<scd.cartridge.boot+0x24; i++)
+                {
+                  m68k.memory_map[i].read8   = m68k_read_bus_8;
+                  m68k.memory_map[i].read16  = m68k_read_bus_16;
+                  m68k.memory_map[i].write8  = m68k_unused_8_w;
+                  m68k.memory_map[i].write16 = m68k_unused_16_w;
+                  zbank_memory_map[i].read   = zbank_unused_r;
+                  zbank_memory_map[i].write  = zbank_unused_w;
+                }
+
+                /* SUB-CPU: access to Word-RAM at 0x080000-0x0BFFFF is unlocked (/DTACK asserted) */
+                for (i=0x08; i<0x0c; i++)
+                {
+                  s68k.memory_map[i].read8   = NULL;
+                  s68k.memory_map[i].read16  = NULL;
+                  s68k.memory_map[i].write8  = NULL;
+                  s68k.memory_map[i].write16 = NULL;
+                }
 
                 /* clear RET bit and update BK0-1 & DMNA bits */
                 scd.regs[0x03>>1].byte.l = (scd.regs[0x03>>1].byte.l & ~0xc3) | (data & 0xc2);
 
-                /* check if graphics operation is running */
+                /* check if SUB-CPU is waiting for Word-RAM access */
+                if (s68k.stopped & 0x04)
+                {
+                  /* synchronize SUB-CPU with MAIN-CPU */
+                  s68k.cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;
+
+                  /* restart SUB-CPU */
+                  s68k_clear_wait();
+#ifdef LOG_SCD
+                  error("s68k started from %d cycles\n", s68k.cycles);
+#endif
+                }
+
+                /* check if graphics operation is started */
                 if (scd.regs[0x58>>1].byte.h & 0x80)
                 {
                   /* relative SUB-CPU cycle counter */
                   unsigned int cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;
 
-                  /* synchronize GFX processing with SUB-CPU (only if not already ahead) */
+                  /* synchronize GFX processing with MAIN-CPU (only if not already ahead) */
                   if (gfx.cycles < cycles)
                   {
                     gfx.cycles = cycles;
                   }
                 }
+
+                /* check if CDC DMA to 2M Word-RAM is halted */
+                if (cdc.halted_dma_w == word_ram_2M_dma_w)
+                {
+                  /* relative SUB-CPU cycle counter */
+                  unsigned int cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;
+
+                  /* enable CDC DMA to 2M Word-RAM */
+                  cdc.dma_w = word_ram_2M_dma_w;
+                  cdc.halted_dma_w = 0;
+
+                  /* synchronize CDC DMA with MAIN-CPU (only if not already ahead) */
+                  if (cdc.cycles[0] < cycles)
+                  {
+                    cdc.cycles[0] = cycles;
+                  }
+                }
+
                 return;
               }
             }
@@ -934,29 +1039,40 @@ void ctrl_io_write_word(unsigned int address, unsigned int data)
             /* RESET bit */
             if (data & 0x01)
             {
-              /* trigger reset on 0->1 transition */
+              /* SUB-CPU reset is triggered on /RESET input 0->1 transition */
               if (!(scd.regs[0x00].byte.l & 0x01))
               {
-                /* reset SUB-CPU */
                 s68k_pulse_reset();
               }
 
               /* BUSREQ bit */
               if (data & 0x02)
               {
-                /* SUB-CPU bus requested */
+                /* SUB-CPU is halted (/HALT input is asserted) */
                 s68k_pulse_halt();
               }
               else
               {
-                /* SUB-CPU bus released */
+                /* SUB-CPU is running (/HALT input is released) */
                 s68k_clear_halt();
               }
+
+              /* update BUSREQ and RESET bits */
+              scd.regs[0x00].byte.l = data & 0x03;
             }
             else
             {
-              /* SUB-CPU is halted while !RESET is asserted */
+              /* SUB-CPU is halted (/HALT and /RESET inputs are asserted) */
               s68k_pulse_halt();
+
+              /* RESET bit is cleared and BUSREQ bit is set to 1 (verified on real hardware) */
+              scd.regs[0x00].byte.l = 0x02;
+            }
+
+            /* BUSREQ bit remains set to 0 if SUB-CPU is halted while stopped (verified on real hardware) */
+            if (s68k.stopped & 0x01)
+            {
+              scd.regs[0x00].byte.l &= ~0x02;
             }
 
             /* check if SUB-CPU halt status has changed */
@@ -965,8 +1081,8 @@ void ctrl_io_write_word(unsigned int address, unsigned int data)
               /* PRG-RAM (128KB bank) is normally mapped to $020000-$03FFFF (resp. $420000-$43FFFF) */
               unsigned int base = scd.cartridge.boot + 0x02;
 
-              /* PRG-RAM can only be accessed from MAIN 68K & Z80 when SUB-CPU is halted (Dungeon Explorer USA version) */
-              if ((data & 0x03) != 0x01)
+              /* PRG-RAM can only be accessed from MAIN-CPU & Z80 when BUSREQ bit is set (Dungeon Explorer USA version) */
+              if (scd.regs[0x00].byte.l & 0x02)
               {
                 m68k.memory_map[base].read8   = m68k.memory_map[base+1].read8   = NULL;
                 m68k.memory_map[base].read16  = m68k.memory_map[base+1].read16  = NULL;
@@ -974,6 +1090,17 @@ void ctrl_io_write_word(unsigned int address, unsigned int data)
                 m68k.memory_map[base].write16 = m68k.memory_map[base+1].write16 = NULL;
                 zbank_memory_map[base].read   = zbank_memory_map[base+1].read   = NULL;
                 zbank_memory_map[base].write  = zbank_memory_map[base+1].write  = NULL;
+
+                /* check if CDC DMA to PRG-RAM is running */
+                if (cdc.dma_w == prg_ram_dma_w)
+                {
+                  /* synchronize CDC DMA with MAIN-CPU */
+                  cdc_dma_update((m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE);
+
+                  /* halt CDC DMA to PRG-RAM (if still running) */
+                  cdc.halted_dma_w = cdc.dma_w;
+                  cdc.dma_w = 0;
+                }
               }
               else
               {
@@ -983,6 +1110,23 @@ void ctrl_io_write_word(unsigned int address, unsigned int data)
                 m68k.memory_map[base].write16 = m68k.memory_map[base+1].write16 = m68k_unused_16_w;
                 zbank_memory_map[base].read   = zbank_memory_map[base+1].read   = zbank_unused_r;
                 zbank_memory_map[base].write  = zbank_memory_map[base+1].write  = zbank_unused_w;
+
+                /* check if CDC DMA to PRG-RAM is halted */
+                if (cdc.halted_dma_w == prg_ram_dma_w)
+                {
+                  /* relative SUB-CPU cycle counter */
+                  unsigned int cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;
+
+                  /* enable CDC DMA to PRG-RAM */
+                  cdc.dma_w = prg_ram_dma_w;
+                  cdc.halted_dma_w = 0;
+
+                  /* synchronize CDC DMA with MAIN-CPU  (only if not already ahead) */
+                  if (cdc.cycles[0] < cycles)
+                  {
+                    cdc.cycles[0] = cycles;
+                  }
+                }
               }
             }
 
@@ -1002,9 +1146,6 @@ void ctrl_io_write_word(unsigned int address, unsigned int data)
                 s68k_update_irq((scd.pending & scd.regs[0x32>>1].byte.l) >> 1);
               }
             }
-
-            /* update LSB only */
-            scd.regs[0x00].byte.l = data & 0xff;
             return;
           }
 
@@ -1040,22 +1181,74 @@ void ctrl_io_write_word(unsigned int address, unsigned int data)
               /* writing 0 to DMNA in 2M mode does nothing */
               if (data & 0x02)
               {
+                int i;
+
                 /* Word-RAM is assigned to SUB-CPU */
                 scd.dmna = 1;
+
+                /* MAIN-CPU: $200000-$23FFFF is unmapped */
+                for (i=scd.cartridge.boot+0x20; i<scd.cartridge.boot+0x24; i++)
+                {
+                  m68k.memory_map[i].read8   = m68k_read_bus_8;
+                  m68k.memory_map[i].read16  = m68k_read_bus_16;
+                  m68k.memory_map[i].write8  = m68k_unused_8_w;
+                  m68k.memory_map[i].write16 = m68k_unused_16_w;
+                  zbank_memory_map[i].read   = zbank_unused_r;
+                  zbank_memory_map[i].write  = zbank_unused_w;
+                }
+
+                /* SUB-CPU: access to Word-RAM at 0x080000-0x0BFFFF is unlocked (/DTACK asserted) */
+                for (i=0x08; i<0x0c; i++)
+                {
+                  s68k.memory_map[i].read8   = NULL;
+                  s68k.memory_map[i].read16  = NULL;
+                  s68k.memory_map[i].write8  = NULL;
+                  s68k.memory_map[i].write16 = NULL;
+                }
 
                 /* clear RET bit and update WP0-7 & BK0-1 bits */
                 scd.regs[0x02>>1].w = (scd.regs[0x02>>1].w & ~0xffc3) | (data & 0xffc2);
 
-                /* check if graphics operation is running */
+                /* check if SUB-CPU is waiting for Word-RAM access */
+                if (s68k.stopped & 0x04)
+                {
+                  /* synchronize SUB-CPU with MAIN-CPU */
+                  s68k.cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;
+
+                  /* restart SUB-CPU */
+                  s68k_clear_wait();
+#ifdef LOG_SCD
+                  error("s68k started from %d cycles\n", s68k.cycles);
+#endif
+                }
+
+                /* check if graphics operation is started */
                 if (scd.regs[0x58>>1].byte.h & 0x80)
                 {
                   /* relative SUB-CPU cycle counter */
                   unsigned int cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;
 
-                  /* synchronize GFX processing with SUB-CPU (only if not already ahead) */
+                  /* synchronize GFX processing with MAIN-CPU (only if not already ahead) */
                   if (gfx.cycles < cycles)
                   {
                     gfx.cycles = cycles;
+                  }
+                }
+
+                /* check if CDC DMA to 2M Word-RAM is halted */
+                if (cdc.halted_dma_w == word_ram_2M_dma_w)
+                {
+                  /* relative SUB-CPU cycle counter */
+                  unsigned int cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;
+
+                  /* enable CDC DMA to 2M Word-RAM */
+                  cdc.dma_w = word_ram_2M_dma_w;
+                  cdc.halted_dma_w = 0;
+
+                  /* synchronize CDC DMA with MAIN-CPU (only if not already ahead) */
+                  if (cdc.cycles[0] < cycles)
+                  {
+                    cdc.cycles[0] = cycles;
                   }
                 }
                 return;
@@ -1070,6 +1263,13 @@ void ctrl_io_write_word(unsigned int address, unsigned int data)
           case 0x06:  /* H-INT vector (word access only ?) */
           {
             *(uint16 *)(m68k.memory_map[scd.cartridge.boot].base + 0x72) = data;
+            return;
+          }
+
+          case 0x08: /* CDC host data */
+          {
+            /* CDC data is also read (although unused) on write access (verified on real hardware, cf. Krikzz's mcd-verificator) */
+            cdc_host_r(CDC_MAIN_CPU_ACCESS);
             return;
           }
 

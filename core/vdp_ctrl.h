@@ -5,7 +5,7 @@
  *  Support for SG-1000 (TMS99xx & 315-5066), Master System (315-5124 & 315-5246), Game Gear & Mega Drive VDP
  *
  *  Copyright (C) 1998-2003  Charles Mac Donald (original code)
- *  Copyright (C) 2007-2023  Eke-Eke (Genesis Plus GX)
+ *  Copyright (C) 2007-2024  Eke-Eke (Genesis Plus GX)
  *
  *  Redistribution and use of this code or any derivative works are permitted
  *  provided that the following conditions are met:
@@ -52,6 +52,8 @@ extern uint8 hint_pending;
 extern uint8 vint_pending;
 extern uint16 status;
 extern uint32 dma_length;
+extern uint32 dma_endCycles;
+extern uint8 dma_type;
 
 /* Global variables */
 extern uint16 ntab;
@@ -76,9 +78,9 @@ extern uint16 vc_max;
 extern uint16 vscroll;
 extern uint16 lines_per_frame;
 extern uint16 max_sprite_pixels;
-extern int32 fifo_write_cnt;
-extern uint32 fifo_slots;
+extern uint32 fifo_cycles[4];
 extern uint32 hvc_latch;
+extern uint32 vint_cycle;
 extern const uint8 *hctab;
 
 /* Function pointers */

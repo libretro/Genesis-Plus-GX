@@ -2,7 +2,7 @@
  *  Genesis Plus
  *  Mega Drive cartridge hardware support
  *
- *  Copyright (C) 2007-2021  Eke-Eke (Genesis Plus GX)
+ *  Copyright (C) 2007-2024  Eke-Eke (Genesis Plus GX)
  *
  *  Many cartridge protections were initially documented by Haze
  *  (http://haze.mameworld.info/)
@@ -71,6 +71,7 @@ static uint32 mapper_flashkit_r(uint32 address);
 static uint32 mapper_smw_64_r(uint32 address);
 static void mapper_smw_64_w(uint32 address, uint32 data);
 static void mapper_realtec_w(uint32 address, uint32 data);
+static uint32 mapper_realtec_r(uint32 address);
 static void mapper_seganet_w(uint32 address, uint32 data);
 static void mapper_32k_w(uint32 data);
 static void mapper_64k_w(uint32 data);
@@ -100,13 +101,13 @@ static void tekken_regs_w(uint32 address, uint32 data);
 static const md_entry_t rom_database[] =
 {
 /* Funny World & Balloon Boy */
-  {0x0000,0x06ab,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x000000,0x000000,0x000000,0x000000},1,0,NULL,NULL,NULL,mapper_realtec_w}},
+  {0x0000,0x06ab,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x000000,0x000000,0x000000,0x000000},1,0,NULL,m68k_unused_8_w,NULL,mapper_realtec_w}},
 /* Whac-a-Critter */
-  {0xffff,0xf863,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x000000,0x000000,0x000000,0x000000},1,0,NULL,NULL,NULL,mapper_realtec_w}},
+  {0xffff,0xf863,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x000000,0x000000,0x000000,0x000000},1,0,NULL,m68k_unused_8_w,NULL,mapper_realtec_w}},
 /* Earth Defense */
-  {0xffff,0x44fb,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x000000,0x000000,0x000000,0x000000},1,0,NULL,NULL,NULL,mapper_realtec_w}},
+  {0xffff,0x44fb,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x000000,0x000000,0x000000,0x000000},1,0,NULL,m68k_unused_8_w,NULL,mapper_realtec_w}},
 /* Tom Clown */
-  {0x0000,0xc0cd,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x000000,0x000000,0x000000,0x000000},1,0,NULL,NULL,NULL,mapper_realtec_w}},
+  {0x0000,0xc0cd,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x000000,0x000000,0x000000,0x000000},1,0,NULL,m68k_unused_8_w,NULL,mapper_realtec_w}},
 
 /* 1800-in-1 */
   {0x3296,0x2370,0x00,0x00,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x000000,0x000000,0x000000,0x000000},0,1,mapper_128k_multi_r,m68k_unused_8_w,NULL,NULL}},
@@ -131,122 +132,122 @@ static const md_entry_t rom_database[] =
 
 
 /* Tenchi wo Kurau III: Sangokushi Gaiden - Chinese Fighter */
-  {0x9490,0x8180,0x40,0x6f,{{0x00,0x00,0x00,0x00},{0xf0000c,0xf0000c,0xf0000c,0xf0000c},{0x400000,0x400004,0x400008,0x40000c},0,1,NULL,NULL,default_regs_r,custom_alt_regs_w}},
+  {0x9490,0x8180,0x40,0x6f,{{0x00,0x00,0x00,0x00},{0xf0000c,0xf0000c,0xf0000c,0xf0000c},{0x400000,0x400004,0x400008,0x40000c},0,1,NULL,m68k_unused_8_w,default_regs_r,custom_alt_regs_w}},
 
 
 /* Top Fighter */
-  {0x4eb9,0x5d8b,0x60,0x7f,{{0x00,0x00,0x00,0x00},{0xf00007,0xf00007,0xf00007,0xffffff},{0x600001,0x600003,0x600005,0x000000},0,1,NULL,NULL,default_regs_r,custom_regs_w}},
+  {0x4eb9,0x5d8b,0x60,0x7f,{{0x00,0x00,0x00,0x00},{0xf00007,0xf00007,0xf00007,0xffffff},{0x600001,0x600003,0x600005,0x000000},0,1,NULL,m68k_unused_8_w,default_regs_r,custom_regs_w}},
 /* Soul Edge VS Samurai Spirits  */
-  {0x00ff,0x5d34,0x60,0x7f,{{0x00,0x00,0x00,0x00},{0xf00007,0xf00007,0xf00007,0xffffff},{0x600001,0x600003,0x600005,0x000000},0,1,NULL,NULL,default_regs_r,custom_regs_w}},
+  {0x00ff,0x5d34,0x60,0x7f,{{0x00,0x00,0x00,0x00},{0xf00007,0xf00007,0xf00007,0xffffff},{0x600001,0x600003,0x600005,0x000000},0,1,NULL,m68k_unused_8_w,default_regs_r,custom_regs_w}},
 /* Mulan */
-  {0x0404,0x1b40,0x60,0x7f,{{0x00,0x00,0x00,0x00},{0xf00007,0xf00007,0xf00007,0xffffff},{0x600001,0x600003,0x600005,0x000000},0,1,NULL,NULL,default_regs_r,custom_regs_w}},
+  {0x0404,0x1b40,0x60,0x7f,{{0x00,0x00,0x00,0x00},{0xf00007,0xf00007,0xf00007,0xffffff},{0x600001,0x600003,0x600005,0x000000},0,1,NULL,m68k_unused_8_w,default_regs_r,custom_regs_w}},
 /* Pocket Monsters II */
-  {0x47f9,0x17e5,0x60,0x7f,{{0x00,0x00,0x00,0x00},{0xf00007,0xf00007,0xf00007,0xffffff},{0x600001,0x600003,0x600005,0x000000},0,1,NULL,NULL,default_regs_r,custom_regs_w}},
+  {0x47f9,0x17e5,0x60,0x7f,{{0x00,0x00,0x00,0x00},{0xf00007,0xf00007,0xf00007,0xffffff},{0x600001,0x600003,0x600005,0x000000},0,1,NULL,m68k_unused_8_w,default_regs_r,custom_regs_w}},
 /* Lion King 3 */
-  {0x0000,0x507c,0x60,0x7f,{{0x00,0x00,0x00,0x00},{0xf00007,0xf00007,0xf00007,0xffffff},{0x600001,0x600003,0x600005,0x000000},0,1,NULL,NULL,default_regs_r,custom_regs_w}},
+  {0x0000,0x507c,0x60,0x7f,{{0x00,0x00,0x00,0x00},{0xf00007,0xf00007,0xf00007,0xffffff},{0x600001,0x600003,0x600005,0x000000},0,1,NULL,m68k_unused_8_w,default_regs_r,custom_regs_w}},
 /* Super King Kong 99 */
-  {0x0000,0x7d6e,0x60,0x7f,{{0x00,0x00,0x00,0x00},{0xf00007,0xf00007,0xf00007,0xffffff},{0x600001,0x600003,0x600005,0x000000},0,1,NULL,NULL,default_regs_r,custom_regs_w}},
+  {0x0000,0x7d6e,0x60,0x7f,{{0x00,0x00,0x00,0x00},{0xf00007,0xf00007,0xf00007,0xffffff},{0x600001,0x600003,0x600005,0x000000},0,1,NULL,m68k_unused_8_w,default_regs_r,custom_regs_w}},
 /* Gunfight 3-in-1 */
-  {0x0000,0x6ff8,0x60,0x7f,{{0x00,0x00,0x00,0x00},{0xf00007,0xf00007,0xf00007,0xffffff},{0x600001,0x600003,0x600005,0x000000},0,1,NULL,NULL,default_regs_r,custom_regs_w}}, 
+  {0x0000,0x6ff8,0x60,0x7f,{{0x00,0x00,0x00,0x00},{0xf00007,0xf00007,0xf00007,0xffffff},{0x600001,0x600003,0x600005,0x000000},0,1,NULL,m68k_unused_8_w,default_regs_r,custom_regs_w}}, 
 /* Pokemon Stadium */
-  {0x0000,0x843c,0x70,0x7f,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x000000,0x000000,0x000000,0x000000},0,1,NULL,NULL,NULL,custom_regs_w}},
+  {0x0000,0x843c,0x70,0x7f,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x000000,0x000000,0x000000,0x000000},0,1,NULL,m68k_unused_8_w,NULL,custom_regs_w}},
 
 
 /* Tekken 3 Special (original dump) (a bootleg version also exists, with patched protection & different boot routine which reads unused !TIME mapped area) */
-  {0x0000,0xc2f0,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x000000,0x000000,0x000000,0x000000},0,0,NULL,NULL,tekken_regs_r,tekken_regs_w}},
+  {0x0000,0xc2f0,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x000000,0x000000,0x000000,0x000000},0,0,NULL,m68k_unused_8_w,tekken_regs_r,tekken_regs_w}},
 
 
 /* Lion King 2 */
-  {0xffff,0x1d9b,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xfffffd,0xfffffd,0xffffff,0xffffff},{0x400000,0x400004,0x000000,0x000000},0,0,NULL,NULL,default_regs_r,default_regs_w}},
+  {0xffff,0x1d9b,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xfffffd,0xfffffd,0xffffff,0xffffff},{0x400000,0x400004,0x000000,0x000000},0,0,NULL,m68k_unused_8_w,default_regs_r,default_regs_w}},
 /* Squirell King */
-  {0x0000,0x8ec8,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xfffffd,0xfffffd,0xffffff,0xffffff},{0x400000,0x400004,0x000000,0x000000},0,0,NULL,NULL,default_regs_r,default_regs_w}},
+  {0x0000,0x8ec8,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xfffffd,0xfffffd,0xffffff,0xffffff},{0x400000,0x400004,0x000000,0x000000},0,0,NULL,m68k_unused_8_w,default_regs_r,default_regs_w}},
 /* Tiny Toon Adventures 3 */
-  {0x2020,0xed9c,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xfffffd,0xfffffd,0xffffff,0xffffff},{0x400000,0x400004,0x000000,0x000000},0,0,NULL,NULL,default_regs_r,default_regs_w}},
+  {0x2020,0xed9c,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xfffffd,0xfffffd,0xffffff,0xffffff},{0x400000,0x400004,0x000000,0x000000},0,0,NULL,m68k_unused_8_w,default_regs_r,default_regs_w}},
 /* Lian Huan Pao - Barver Battle Saga (registers accessed by Z80, related to sound engine ?) */
-  {0x30b9,0x1c2a,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xfffffd,0xfffffd,0xffffff,0xffffff},{0x400000,0x400004,0x000000,0x000000},0,0,NULL,NULL,default_regs_r,default_regs_w}},
+  {0x30b9,0x1c2a,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xfffffd,0xfffffd,0xffffff,0xffffff},{0x400000,0x400004,0x000000,0x000000},0,0,NULL,m68k_unused_8_w,default_regs_r,default_regs_w}},
 /* Shui Hu Zhuan (registers accessed by Z80, related to sound engine ?) */
-  {0x6001,0x0211,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xfffffd,0xfffffd,0xffffff,0xffffff},{0x400000,0x400004,0x000000,0x000000},0,0,NULL,NULL,default_regs_r,default_regs_w}},
+  {0x6001,0x0211,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xfffffd,0xfffffd,0xffffff,0xffffff},{0x400000,0x400004,0x000000,0x000000},0,0,NULL,m68k_unused_8_w,default_regs_r,default_regs_w}},
 /* Feng Shen Ying Jie Chuan (registers accessed by Z80, related to sound engine ?) */
-  {0xffff,0x5d98,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xfffffd,0xfffffd,0xffffff,0xffffff},{0x400000,0x400004,0x000000,0x000000},0,0,NULL,NULL,default_regs_r,default_regs_w}},
+  {0xffff,0x5d98,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xfffffd,0xfffffd,0xffffff,0xffffff},{0x400000,0x400004,0x000000,0x000000},0,0,NULL,m68k_unused_8_w,default_regs_r,default_regs_w}},
 /* (*) Shui Hu - Feng Yun Zhuan (patched ROM, unused registers) */
-  {0x3332,0x872b,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xfffffd,0xfffffd,0xffffff,0xffffff},{0x400000,0x400004,0x000000,0x000000},0,0,NULL,NULL,default_regs_r,default_regs_w}},
+  {0x3332,0x872b,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xfffffd,0xfffffd,0xffffff,0xffffff},{0x400000,0x400004,0x000000,0x000000},0,0,NULL,m68k_unused_8_w,default_regs_r,default_regs_w}},
 
 
 /* (*) Chao Ji Da Fu Weng (patched ROM, various words witten to register, long word also read from $7E0000, unknown banking hardware ?) */
-  {0xa697,0xa697,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x000000,0x000000,0x000000},0,0,NULL,NULL,NULL,default_regs_w}},
+  {0xa697,0xa697,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x000000,0x000000,0x000000},0,0,NULL,m68k_unused_8_w,NULL,default_regs_w}},
 
 /* (*) Aq Renkan Awa (patched ROM, ON/OFF bit sequence is written to register, unknown banking hardware ?) */
-  {0x8104,0x0517,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400001,0x000000,0x000000,0x000000},0,0,NULL,NULL,NULL,default_regs_w}},
+  {0x8104,0x0517,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400001,0x000000,0x000000,0x000000},0,0,NULL,m68k_unused_8_w,NULL,default_regs_w}},
 
 
 /* (*) Tun Shi Tian Di III (patched ROM, unused register) */
-  {0x0000,0x9c5e,0x40,0x40,{{0xab,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400046,0x000000,0x000000,0x000000},0,0,NULL,NULL,default_regs_r,NULL}},
+  {0x0000,0x9c5e,0x40,0x40,{{0xab,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400046,0x000000,0x000000,0x000000},0,0,NULL,m68k_unused_8_w,default_regs_r,NULL}},
 
 
 /* Ma Jiang Qing Ren - Ji Ma Jiang Zhi */
-  {0x0000,0x7037,0x40,0x40,{{0x90,0xd3,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x401000,0x000000,0x000000},0,0,NULL,NULL,default_regs_r,NULL}},
+  {0x0000,0x7037,0x40,0x40,{{0x90,0xd3,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x401000,0x000000,0x000000},0,0,NULL,m68k_unused_8_w,default_regs_r,NULL}},
 /* Super Majon Club */
-  {0x0000,0x3b95,0x40,0x40,{{0x90,0xd3,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x401000,0x000000,0x000000},0,0,NULL,NULL,default_regs_r,NULL}},
+  {0x0000,0x3b95,0x40,0x40,{{0x90,0xd3,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x401000,0x000000,0x000000},0,0,NULL,m68k_unused_8_w,default_regs_r,NULL}},
 /* Feng Kuang Tao Hua Yuan (original version from Creaton Softec Inc) (a bootleg version also exists with patched protection and minor title screen variations) */
-  {0x0000,0x9dc4,0x40,0x40,{{0x90,0xd3,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x401000,0x000000,0x000000},0,0,NULL,NULL,default_regs_r,NULL}},
+  {0x0000,0x9dc4,0x40,0x40,{{0x90,0xd3,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x401000,0x000000,0x000000},0,0,NULL,m68k_unused_8_w,default_regs_r,NULL}},
 
 
 /* (*) Jiu Ji Ma Jiang II - Ye Yan Bian (patched ROM, using expected register value - $0f - crashes the game) (uses 16-bits reads) */
-  {0x0c44,0xba81,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x000000,0x000000,0x000000,0x400006},0,0,NULL,NULL,default_regs_r_16,NULL}},
+  {0x0c44,0xba81,0x40,0x40,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x000000,0x000000,0x000000,0x400006},0,0,NULL,m68k_unused_8_w,default_regs_r_16,NULL}},
 /* 16 Zhang Ma Jiang (uses 16-bits reads) */
-  {0xfb40,0x4bed,0x40,0x40,{{0x00,0xaa,0x00,0xf0},{0xffffff,0xffffff,0xffffff,0xffffff},{0x000000,0x400002,0x000000,0x400006},0,0,NULL,NULL,default_regs_r_16,NULL}},
+  {0xfb40,0x4bed,0x40,0x40,{{0x00,0xaa,0x00,0xf0},{0xffffff,0xffffff,0xffffff,0xffffff},{0x000000,0x400002,0x000000,0x400006},0,0,NULL,m68k_unused_8_w,default_regs_r_16,NULL}},
 /* 16 Tiles Mahjong II (uses 16-bits reads) */
-  {0xffff,0x0903,0x40,0x40,{{0x00,0x00,0xc9,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x000000,0x000000,0x400004,0x000000},0,0,NULL,NULL,default_regs_r_16,NULL}},
+  {0xffff,0x0903,0x40,0x40,{{0x00,0x00,0xc9,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x000000,0x000000,0x400004,0x000000},0,0,NULL,m68k_unused_8_w,default_regs_r_16,NULL}},
 /* Thunderbolt II (uses 16-bits reads) */
-  {0x0000,0x1585,0x40,0x40,{{0x55,0x0f,0xaa,0xf0},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,NULL,default_regs_r_16,NULL}},
+  {0x0000,0x1585,0x40,0x40,{{0x55,0x0f,0xaa,0xf0},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,m68k_unused_8_w,default_regs_r_16,NULL}},
 
 
 /* Chaoji Puke - Super Poker (correct ROM dump, original release is an overdump) */
-  {0xffff,0xd7b0,0x40,0x40,{{0x55,0x0f,0xaa,0xf0},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,NULL,default_regs_r,NULL}},
+  {0xffff,0xd7b0,0x40,0x40,{{0x55,0x0f,0xaa,0xf0},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,m68k_unused_8_w,default_regs_r,NULL}},
 /* Super Bubble Bobble */
-  {0x0000,0x16cd,0x40,0x40,{{0x55,0x0f,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x000000,0x000000},0,0,NULL,NULL,default_regs_r,NULL}},
+  {0x0000,0x16cd,0x40,0x40,{{0x55,0x0f,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x000000,0x000000},0,0,NULL,m68k_unused_8_w,default_regs_r,NULL}},
 /* Tenchi wo Kurau II - The Battle of Red Cliffs (Unl) */
-  {0x0000,0xed61,0x40,0x40,{{0x55,0x0f,0xaa,0xf0},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,NULL,default_regs_r,NULL}},
+  {0x0000,0xed61,0x40,0x40,{{0x55,0x0f,0xaa,0xf0},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,m68k_unused_8_w,default_regs_r,NULL}},
 /* Huan Le Tao Qi Shu - Smart Mouse */
-  {0x0000,0x1a28,0x40,0x40,{{0x55,0x0f,0xaa,0xf0},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,NULL,default_regs_r,NULL}},
+  {0x0000,0x1a28,0x40,0x40,{{0x55,0x0f,0xaa,0xf0},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,m68k_unused_8_w,default_regs_r,NULL}},
 /* (*) Hei Tao 2 - Super Big 2 (patched ROM, unused registers) */
-  {0x0000,0x5843,0x40,0x40,{{0x55,0x0f,0xaa,0xf0},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,NULL,default_regs_r,NULL}},
+  {0x0000,0x5843,0x40,0x40,{{0x55,0x0f,0xaa,0xf0},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,m68k_unused_8_w,default_regs_r,NULL}},
 /* Mighty Morphin Power Rangers - The Fighting Edition */
-  {0x0000,0x2288,0x40,0x40,{{0x55,0x0f,0xc9,0x18},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,NULL,default_regs_r,NULL}},
+  {0x0000,0x2288,0x40,0x40,{{0x55,0x0f,0xc9,0x18},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,m68k_unused_8_w,default_regs_r,NULL}},
 /* Elf Wor */
-  {0x0080,0x3dba,0x40,0x40,{{0x55,0x0f,0xc9,0x18},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,NULL,default_regs_r,NULL}},
+  {0x0080,0x3dba,0x40,0x40,{{0x55,0x0f,0xc9,0x18},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,m68k_unused_8_w,default_regs_r,NULL}},
 /* Ya-Se Chuanshuo */
-  {0xffff,0xd472,0x40,0x40,{{0x63,0x98,0xc9,0x18},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,NULL,default_regs_r,NULL}},
+  {0xffff,0xd472,0x40,0x40,{{0x63,0x98,0xc9,0x18},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,m68k_unused_8_w,default_regs_r,NULL}},
 /* 777 Casino (For first one, 0x55 works as well. Other values are never used so they are guessed from on other unlicensed games using similar mapper) */
-  {0x0000,0xf8d9,0x40,0x40,{{0x63,0x98,0xc9,0x18},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,NULL,default_regs_r,NULL}},
+  {0x0000,0xf8d9,0x40,0x40,{{0x63,0x98,0xc9,0x18},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,m68k_unused_8_w,default_regs_r,NULL}},
 /* Wu Kong Wai Zhuan (original) (a bootleg version also exists, with patched protection & modified SRAM test routine ?) */
-  {0x0000,0x19ff,0x40,0x40,{{0x63,0x98,0xc9,0x18},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,NULL,default_regs_r,NULL}},
+  {0x0000,0x19ff,0x40,0x40,{{0x63,0x98,0xc9,0x18},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,m68k_unused_8_w,default_regs_r,NULL}},
 /* Soul Blade */
-  {0x0000,0x0c5b,0x40,0x40,{{0x63,0x98,0xc9,0xf0},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,NULL,default_regs_r,NULL}},
+  {0x0000,0x0c5b,0x40,0x40,{{0x63,0x98,0xc9,0xf0},{0xffffff,0xffffff,0xffffff,0xffffff},{0x400000,0x400002,0x400004,0x400006},0,0,NULL,m68k_unused_8_w,default_regs_r,NULL}},
 
 
 /* King of Fighter 98 */
-  {0x0000,0xd0a0,0x48,0x4f,{{0x00,0x00,0xaa,0xf0},{0xffffff,0xffffff,0xfc0000,0xfc0000},{0x000000,0x000000,0x480000,0x4c0000},0,0,NULL,NULL,default_regs_r,NULL}},
+  {0x0000,0xd0a0,0x48,0x4f,{{0x00,0x00,0xaa,0xf0},{0xffffff,0xffffff,0xfc0000,0xfc0000},{0x000000,0x000000,0x480000,0x4c0000},0,0,NULL,m68k_unused_8_w,default_regs_r,NULL}},
 
 
 /* Rock Heaven */
-  {0x6cca,0x2395,0x50,0x50,{{0x50,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x500008,0x000000,0x000000,0x000000},0,0,NULL,NULL,default_regs_r,NULL}},
+  {0x6cca,0x2395,0x50,0x50,{{0x50,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x500008,0x000000,0x000000,0x000000},0,0,NULL,m68k_unused_8_w,default_regs_r,NULL}},
 /* Rock World */
-  {0x3547,0xa3da,0x50,0x50,{{0x50,0xa0,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x500008,0x500208,0x000000,0x000000},0,0,NULL,NULL,default_regs_r,NULL}},
+  {0x3547,0xa3da,0x50,0x50,{{0x50,0xa0,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x500008,0x500208,0x000000,0x000000},0,0,NULL,m68k_unused_8_w,default_regs_r,NULL}},
 
 
 /* Rockman X3 (bootleg version ? two last register returned values are ignored, note that 0xaa/0x18 would work as well) */
-  {0x0000,0x9d0e,0x40,0x40,{{0x0c,0x00,0xc9,0xf0},{0xffffff,0xffffff,0xffffff,0xffffff},{0xa13000,0x000000,0x400004,0x400006},0,0,default_regs_r,NULL,default_regs_r,NULL}},
+  {0x0000,0x9d0e,0x40,0x40,{{0x0c,0x00,0xc9,0xf0},{0xffffff,0xffffff,0xffffff,0xffffff},{0xa13000,0x000000,0x400004,0x400006},0,0,default_regs_r,m68k_unused_8_w,default_regs_r,NULL}},
 
 
 /* (*) Dragon Ball Final Bout  (patched ROM, in original code, different switches occurs depending on returned value $00-$0f) */
-  {0xc65a,0xc65a,0x00,0x00,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0xa13000,0x000000,0x000000,0x000000},0,0,default_regs_r,NULL,NULL,NULL}},
+  {0xc65a,0xc65a,0x00,0x00,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0xa13000,0x000000,0x000000,0x000000},0,0,default_regs_r,m68k_unused_8_w,NULL,NULL}},
 /* (*) Yang Jia Jiang - Yang Warrior Family (patched ROM, register value unused) */
-  {0x0000,0x96b0,0x00,0x00,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0xa13000,0x000000,0x000000,0x000000},0,0,default_regs_r,NULL,NULL,NULL}},
+  {0x0000,0x96b0,0x00,0x00,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0xa13000,0x000000,0x000000,0x000000},0,0,default_regs_r,m68k_unused_8_w,NULL,NULL}},
 /* Super Mario 2 1998 */
-  {0xffff,0x0474,0x00,0x00,{{0x0a,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0xa13000,0x000000,0x000000,0x000000},0,0,default_regs_r,NULL,NULL,NULL}},
+  {0xffff,0x0474,0x00,0x00,{{0x0a,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0xa13000,0x000000,0x000000,0x000000},0,0,default_regs_r,m68k_unused_8_w,NULL,NULL}},
 /* Super Mario World */
-  {0x2020,0xb4eb,0x00,0x00,{{0x1c,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0xa13000,0x000000,0x000000,0x000000},0,0,default_regs_r,NULL,NULL,NULL}},
+  {0x2020,0xb4eb,0x00,0x00,{{0x1c,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0xa13000,0x000000,0x000000,0x000000},0,0,default_regs_r,m68k_unused_8_w,NULL,NULL}},
 
 
 /* King of Fighter 99 */
@@ -264,7 +265,7 @@ static const md_entry_t rom_database[] =
 
 
 /* Top Shooter (arcade hardware) */
-  {0xffff,0x3632,0x20,0x20,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x000000,0x000000,0x000000,0x000000},0,0,NULL,NULL,topshooter_r,topshooter_w}}
+  {0xffff,0x3632,0x20,0x20,{{0x00,0x00,0x00,0x00},{0xffffff,0xffffff,0xffffff,0xffffff},{0x000000,0x000000,0x000000,0x000000},0,0,NULL,m68k_unused_8_w,topshooter_r,topshooter_w}}
 };
 
 
@@ -377,20 +378,20 @@ void md_cart_init(void)
     zbank_memory_map[i].write   = zbank_unused_w;
   }
 
-  /* support for Quackshot REV 01 (real) dump */
-  if (strstr(rominfo.product,"00004054-01") && (cart.romsize == 0x80000))
+  /* support for Quackshot REV A original ROM dump (512KB) */
+  if (strstr(rominfo.product,"00004054-01") && (cart.romsize == 0x80000) && (rominfo.checksum == 0xa4b3))
   {
-    /* $000000-$0fffff: first 256K mirrored (A18 not connected to ROM chip, A19 not decoded) */
+    /* $000000-$0fffff: lower 256KB mirrored (VA18 and VA19 not connected to ROM chip) */
     for (i=0x00; i<0x10; i++)
     {
-      /* $200000-$3fffff: mirror of $000000-$1fffff (A21 not decoded) */
+      /* $200000-$3fffff: mirror of $000000-$1fffff (VA21 not connected to ROM chip) */
       m68k.memory_map[i].base = m68k.memory_map[i + 0x20].base = cart.rom + ((i & 0x03) << 16);
     }
 
-    /* $100000-$1fffff: second 256K mirrored (A20 connected to ROM chip A18) */
+    /* $100000-$1fffff: upper 256KB mirrored (VA20 connected to ROM chip A19) */
     for (i=0x10; i<0x20; i++)
     {
-      /* $200000-$3fffff: mirror of $000000-$1fffff (A21 not decoded) */
+      /* $200000-$3fffff: mirror of $000000-$1fffff (VA21 not connected to ROM chip) */
       m68k.memory_map[i].base = m68k.memory_map[i + 0x20].base = cart.rom + 0x40000 + ((i & 0x03) << 16);
     }
   }
@@ -407,13 +408,17 @@ void md_cart_init(void)
     /* SRAM is mapped by default unless it overlaps with ROM area (Phantasy Star 4, Beyond Oasis/Legend of Thor, World Series Baseball 9x, Duke Nukem 3D,...) */
     if (sram.start >= cart.romsize)
     {
-      m68k.memory_map[sram.start >> 16].base    = sram.sram;
-      m68k.memory_map[sram.start >> 16].read8   = sram_read_byte;
-      m68k.memory_map[sram.start >> 16].read16  = sram_read_word;
-      m68k.memory_map[sram.start >> 16].write8  = sram_write_byte;
-      m68k.memory_map[sram.start >> 16].write16 = sram_write_word;
-      zbank_memory_map[sram.start >> 16].read   = sram_read_byte;
-      zbank_memory_map[sram.start >> 16].write  = sram_write_byte;
+      /* except for Sonic the Hedgehog 3 (cartridge ROM mirrored in upper 2MB area at power on) */
+      if (strstr(rominfo.international,"SONIC THE HEDGEHOG 3") == NULL)
+      {
+        m68k.memory_map[sram.start >> 16].base    = sram.sram;
+        m68k.memory_map[sram.start >> 16].read8   = sram_read_byte;
+        m68k.memory_map[sram.start >> 16].read16  = sram_read_word;
+        m68k.memory_map[sram.start >> 16].write8  = sram_write_byte;
+        m68k.memory_map[sram.start >> 16].write16 = sram_write_word;
+        zbank_memory_map[sram.start >> 16].read   = sram_read_byte;
+        zbank_memory_map[sram.start >> 16].write  = sram_write_byte;
+      }
     }
 
     /* support for Triple Play 96 & Triple Play - Gold Edition mapping */
@@ -459,6 +464,12 @@ void md_cart_init(void)
   ***********************************************/
   memset(&cart.hw, 0, sizeof(cart.hw));
 
+  /* initialize default $200000-$20ffff mapping (for games using SRAM & ROM bankswitching) */
+  if (m68k.memory_map[0x20].base == sram.sram)
+  {
+    cart.hw.regs[0] = (0x200000 & cart.mask) >> 16;
+  }
+
   /* search for game into database */
   for (i=0; i<(sizeof(rom_database)/sizeof(md_entry_t)); i++)
   {
@@ -503,15 +514,18 @@ void md_cart_init(void)
       memcpy(cart.rom + 0x400000 + i*0x2000, cart.rom + 0x7e000, 0x2000);
     }
 
-    /* Boot ROM (8KB mirrored) is mapped to $000000-$3FFFFF */
-    for (i=0x00; i<0x40; i++)
-    {
-      m68k.memory_map[i].base = cart.rom + 0x400000;
-    }
+    /* specific read handler for ROM header area */
+    m68k.memory_map[0].read16 = mapper_realtec_r;
   }
 
   /* detect specific mappers */
-  if (strstr(rominfo.consoletype,"SEGA SSF"))
+  else if (strstr(rominfo.international,"DEMONS OF ASTEBORG") ||
+           strstr(rominfo.international,"ASTEBROS"))
+  {
+    /* default SSF2+SRAM mapper (fixes Steam versions which incorrectly use Everdrive extended SSF mapper indicator in ROM header) */ 
+    cart.hw.time_w = default_time_w;
+  }
+  else if (strstr(rominfo.consoletype,"SEGA SSF"))
   {
     /* Everdrive extended SSF mapper */
     cart.hw.time_w = mapper_512k_w;
@@ -803,8 +817,23 @@ void md_cart_reset(int hard_reset)
 {
   int i;
 
+  /* Realtec mapper */
+  if (cart.hw.realtec)
+  {
+    /* Boot ROM (8KB mirrored) is mapped to $000000-$3FFFFF */
+    for (i=0x00; i<0x40; i++)
+    {
+      m68k.memory_map[i].base = cart.rom + 0x400000;
+    }
+
+    /* Reset mapper */
+    cart.hw.regs[0] = 0;
+    cart.hw.regs[1] = 0;
+    cart.hw.regs[2] = 0;
+  }
+
   /* reset cartridge mapping */
-  if (cart.hw.bankshift)
+  else if (cart.hw.bankshift)
   {
     for (i=0x00; i<0x40; i++)
     {
@@ -983,13 +1012,21 @@ static void mapper_sega_w(uint32 data)
 
   if (data & 1)
   {
+    /* check Backup RAM is enabled */
     if (sram.on)
     {
-      /* Backup RAM mapped to $200000-$20ffff (normally mirrored up to $3fffff but this breaks Sonic Megamix and no game need it) */
-      m68k.memory_map[0x20].base    = sram.sram;
-      m68k.memory_map[0x20].read8   = sram_read_byte;
-      m68k.memory_map[0x20].read16  = sram_read_word;
-      zbank_memory_map[0x20].read   = sram_read_byte;
+      /* check Backup RAM is currently not mapped */
+      if (m68k.memory_map[0x20].base != sram.sram)
+      {
+        /* save current cartridge ROM bank mapped to $200000-$20ffff (for games using SRAM & ROM bankswitching) */
+        cart.hw.regs[0] = ((m68k.memory_map[0x20].base - cart.rom) >> 16) & 0xff;
+
+        /* Backup RAM mapped to $200000-$20ffff (normally mirrored up to $3fffff but this breaks Sonic Megamix and no game need it) */
+        m68k.memory_map[0x20].base    = sram.sram;
+        m68k.memory_map[0x20].read8   = sram_read_byte;
+        m68k.memory_map[0x20].read16  = sram_read_word;
+        zbank_memory_map[0x20].read   = sram_read_byte;
+      }
 
       /* Backup RAM write protection */
       if (data & 2)
@@ -1018,16 +1055,27 @@ static void mapper_sega_w(uint32 data)
   }
   else
   {
-    /* cartridge ROM mapped to $200000-$3fffff */
-    for (i=0x20; i<0x40; i++)
+    /* check Backup RAM is currently mapped */
+    if (m68k.memory_map[0x20].base == sram.sram)
     {
-      m68k.memory_map[i].base     = cart.rom + ((i<<16) & cart.mask);
-      m68k.memory_map[i].read8    = NULL;
-      m68k.memory_map[i].read16   = NULL;
-      zbank_memory_map[i].read    = NULL;
-      m68k.memory_map[i].write8   = m68k_unused_8_w;
-      m68k.memory_map[i].write16  = m68k_unused_16_w;
-      zbank_memory_map[i].write   = zbank_unused_w;
+      /* current cartridge ROM bank mapped to $200000-$20ffff */
+      m68k.memory_map[0x20].base    = cart.rom + (cart.hw.regs[0] << 16);
+      m68k.memory_map[0x20].read8   = NULL;
+      m68k.memory_map[0x20].read16  = NULL;
+      zbank_memory_map[0x20].read   = NULL;
+      m68k.memory_map[0x20].write8  = m68k_unused_8_w;
+      m68k.memory_map[0x20].write16 = m68k_unused_16_w;
+      zbank_memory_map[0x20].write  = zbank_unused_w;
+    }
+
+    /* S&K lock-on chip */
+    if (cart.special & HW_LOCK_ON)
+    {
+      /* cartridge ROM mapped to $300000-$3fffff */
+      for (i=0x30; i<0x40; i++)
+      {
+        m68k.memory_map[i].base = cart.rom + ((i<<16) & cart.mask);
+      }
     }
   }
 }
@@ -1615,48 +1663,74 @@ static uint32 mapper_smw_64_r(uint32 address)
 }
 
 /* 
-  Realtec ROM bankswitch (Earth Defend, Balloon Boy & Funny World, Whac-A-Critter)
-  (Note: register usage is inverted in TascoDlx documentation)
+  Realtec ROM bankswitch (Earth Defend, Balloon Boy & Funny World, Whac-A-Critter, Tom Clown)
+  Verified with real cartridge hardware (slightly different from behavior described in TascoDlx documentation)
 */
 static void mapper_realtec_w(uint32 address, uint32 data)
 {
   switch (address)
   {
-    case 0x402000:  
+    case 0x402000: 
     {
-      /* number of mapped 64k blocks (the written value is a number of 128k blocks) */
-      cart.hw.regs[2] = data << 1;
+      /* fixed ROM bank size */
+      /* when bit 0 is set, ROM A16 pin is forced to value configured in register below (connected to VA17 otherwise) */
+      /* when bit 1 is set, ROM A17 pin is forced to value configured in register below (connected to VA18 otherwise) */
+      /* other bits have no effect */
+      cart.hw.regs[1] = (data & 3) << 1;
       return;
     }
 
-    case 0x404000:
+    case 0x404000: 
     {
-      /* 00000xxx */
-      cart.hw.regs[0] = data & 7;
+      /* fixed ROM bank selection (4 x 128KB banks) */
+      /* bit 0 corresponds to ROM A16 pin value when forced */
+      /* bit 1 corresponds to ROM A17 pin value when forced */
+      /* other bits have no effect */
+      cart.hw.regs[2] = (data & 3) << 1;
       return;
     }
 
     case 0x400000:  
     {
-      /* 00000yy1 */
-      cart.hw.regs[1] = data & 6;
-
-      /* ensure mapped size is not null */
-      if (cart.hw.regs[2])
+      /* ROM access enable */
+      /* when bit 0 is set, ROM A17/A16 pins are set according to above registers and ROM A15/A12 pins are connected to VA16-VA13 (forced to 1 on reset) */
+      /* other bits have no effect */
+      if (data & 0x01)
       {
-        /* mapped start address is 00yy xxx0 0000 0000 0000 0000 */
-        uint32 base = (cart.hw.regs[0] << 1) | (cart.hw.regs[1] << 3);
-
-        /* selected blocks are mirrored into the whole cartridge area */
-        int i;
-        for (i=0x00; i<0x40; i++)
+        /* once ROM access is enabled, ROM mapping can not be modified until next reset */
+        if (!cart.hw.regs[0])
         {
-          m68k.memory_map[i].base = &cart.rom[(base + (i % cart.hw.regs[2])) << 16];
+          int i;
+          for (i=0x00; i<0x40; i++)
+          {
+            /* 0x000000-0x07ffff mapped area is mirrored in 4MB cartridge range (VA21-VA19 not connected) */
+            uint32 base = i & 7;
+
+            /* adjust 64k mapped area ROM base address according to fixed ROM bank configuration (see above) */
+            base = (base & ~cart.hw.regs[1]) | (cart.hw.regs[2] & cart.hw.regs[1]);
+
+            m68k.memory_map[i].base = &cart.rom[base << 16];
+          }
+
+          cart.hw.regs[0] = data;
         }
       }
       return;
     }
   }
+}
+
+static uint32 mapper_realtec_r(uint32 address)
+{
+  /* /VRES is asserted to bypass TMSS licensing screen when first read access to cartridge ROM header is detected */
+  if ((address == 0x100) && (m68k.memory_map[0].base = cart.base))
+  {
+    /* asserting /VRES from cartridge should only reset 68k CPU (TODO: confirm this on real hardware) */
+    m68k_pulse_reset();
+  }
+
+  /* default ROM area read handler */
+  return *(uint16 *)(m68k.memory_map[0].base + (address & 0xfffe));
 }
 
 /* Game no Kanzume Otokuyou ROM Mapper */
@@ -1959,23 +2033,24 @@ static uint32 mapper_128k_radica_r(uint32 address)
 
 
 /*
-  Custom logic (ST 16S25HB1 PAL) used in Micro Machines US cartridge (SR16V1.1 board)
-  +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   /VRES is asserted after write access to 0xA14101 (TMSS bank-shift register)
-   with D0=1 (cartridge ROM access enabled instead of TMSS Boot ROM) being detected 
+  Custom logic (ST 16S25HB1 PAL) used in Micro Machines USA cartridge (SR16V1.1 board)
+  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   /VRES is asserted to bypass TMSS security checks when write access to 0xA141xx 
+   with D0=1 is detected (access to cartridge ROM enabled instead of TMSS Boot ROM)
 */
 static void mapper_sr16v1_w(uint32 address, uint32 data)
 {
-  /* 0xA10000-0xA1FFFF address range is mapped to I/O and Control registers */
+  /* default I/O and Control registers write handler */
   ctrl_io_write_byte(address, data);
 
-  /* cartridge uses /LWR, /AS and VA1-VA18 (only VA8-VA17 required to decode access to TMSS bank-shift register) */
+  /* cartridge uses /LWR, /AS and VA1-VA18 (only VA8-VA17 are required to decode access to TMSS bankswitch register) */
   if ((address & 0xff01) == 0x4101)
   {
-    /* cartridge ROM is enabled when D0=1 */
+    /* check if cartridge ROM is enabled (D0=1) */
     if (data & 0x01)
     {
-      gen_reset(0);
+      /* asserting /VRES from cartridge should only reset 68k CPU (TODO: confirm this on real hardware) */
+       m68k_pulse_reset();
     }
   }
 }
@@ -1990,6 +2065,10 @@ static void default_time_w(uint32 address, uint32 data)
   if (address < 0xa13060)
   {
     mapper_64k_multi_w(address);
+
+    /* cartridge ROM mapping is reinitialized on /VRES */
+    cart.hw.bankshift = 1;
+
     return;
   }
 

@@ -8,7 +8,7 @@ INLINE void UseDivuCycles(uint32 dst, uint32 src)
   int i;
 
   /* minimum cycle time */
-  uint mcycles = 38 * MUL;
+  uint mcycles = 76 * MUL;
 
   /* 16-bit divisor */
   src <<= 16;
@@ -27,27 +27,33 @@ INLINE void UseDivuCycles(uint32 dst, uint32 src)
     {
       /* shift dividend and add two cycles */
       dst <<= 1;
-      mcycles += (2 * MUL);
+      mcycles += (4 * MUL);
 
       if (dst >= src)
       {
         /* apply divisor and remove one cycle */
         dst -= src;
-        mcycles -= 1 * MUL;
+        mcycles -= 2 * MUL;
       }
     }
   }
 
-  USE_CYCLES(mcycles << 1);
+  USE_CYCLES(mcycles);
+
+  /* one 68K bus refresh cycle should be skipped if instruction processing time is longer than refresh period (128 CPU cycles on Mega Drive / Genesis) */
+  if (mcycles >= (128*MUL))
+  {
+    m68ki_cpu.refresh_cycles += (128*MUL);
+  }
 }
 
 INLINE void UseDivsCycles(sint32 dst, sint16 src)
 {
   /* minimum cycle time */
-  uint mcycles = 6 * MUL;
+  uint mcycles = 12 * MUL;
 
   /* negative dividend */
-  if (dst < 0) mcycles += 1 * MUL;
+  if (dst < 0) mcycles += 2 * MUL;
 
   if ((abs(dst) >> 16) < abs(src))
   {
@@ -57,30 +63,36 @@ INLINE void UseDivsCycles(sint32 dst, sint16 src)
     uint32 quotient = abs(dst) / abs(src);
 
     /* add default cycle time */
-    mcycles += (55 * MUL);
+    mcycles += (110 * MUL);
 
     /* positive divisor */
     if (src >= 0)
     {
       /* check dividend sign */
-      if (dst >= 0) mcycles -= 1 * MUL;
-      else mcycles += 1 * MUL;
+      if (dst >= 0) mcycles -= 2 * MUL;
+      else mcycles += 2 * MUL;
     }
 
     /* check higher 15-bits of quotient */
     for (i=0; i<15; i++)
     {
       quotient >>= 1;
-      if (!(quotient & 1)) mcycles += 1 * MUL;
+      if (!(quotient & 1)) mcycles += 2 * MUL;
     }
   }
   else
   {
     /* absolute overflow */
-    mcycles += (2 * MUL);
+    mcycles += (4 * MUL);
   }
 
-  USE_CYCLES(mcycles << 1);
+  USE_CYCLES(mcycles);
+  
+  /* one 68K bus refresh cycle should be skipped if instruction processing time is longer than refresh period (128 CPU cycles on Mega Drive / Genesis) */
+  if (mcycles >= (128*MUL))
+  {
+    m68ki_cpu.refresh_cycles += (128*MUL);
+  }
 }
 
 INLINE void UseMuluCycles(uint16 src)
@@ -1868,6 +1880,9 @@ static void m68k_op_addq_8_d(void)
   FLAG_Z = MASK_OUT_ABOVE_8(res);
 
   *r_dst = MASK_OUT_BELOW_8(*r_dst) | FLAG_Z;
+
+  /* reset idle loop detection (fixes cases where instruction is used in tight counter incrementing loop) */
+  m68ki_cpu.poll.detected = 0;
 }
 
 
@@ -2028,6 +2043,9 @@ static void m68k_op_addq_16_d(void)
   FLAG_Z = MASK_OUT_ABOVE_16(res);
 
   *r_dst = MASK_OUT_BELOW_16(*r_dst) | FLAG_Z;
+
+  /* reset idle loop detection (fixes cases where instruction is used in tight counter incrementing loop) */
+  m68ki_cpu.poll.detected = 0;
 }
 
 
@@ -2164,6 +2182,9 @@ static void m68k_op_addq_32_d(void)
   FLAG_Z = MASK_OUT_ABOVE_32(res);
 
   *r_dst = FLAG_Z;
+
+  /* reset idle loop detection (fixes cases where instruction is used in tight counter incrementing loop) */
+  m68ki_cpu.poll.detected = 0;
 }
 
 
@@ -15222,6 +15243,9 @@ static void m68k_op_movem_16_er_pi(void)
     }
   AY = ea;
 
+  /* MOVEM extra read cycle (can have side effect if target hardware is impacted by read access) */
+  m68ki_read_16(ea);
+
   USE_CYCLES(count * CYC_MOVEM_W);
 }
 
@@ -15240,6 +15264,9 @@ static void m68k_op_movem_16_er_pcdi(void)
       ea += 2;
       count++;
     }
+
+  /* MOVEM extra read cycle (can have side effect if target hardware is impacted by read access) */
+  m68ki_read_16(ea);
 
   USE_CYCLES(count * CYC_MOVEM_W);
 }
@@ -15260,6 +15287,9 @@ static void m68k_op_movem_16_er_pcix(void)
       count++;
     }
 
+  /* MOVEM extra read cycle (can have side effect if extra address is not mapped or mapped to hardware impacted by read access) */
+  m68ki_read_16(ea);
+
   USE_CYCLES(count * CYC_MOVEM_W);
 }
 
@@ -15278,6 +15308,9 @@ static void m68k_op_movem_16_er_ai(void)
       ea += 2;
       count++;
     }
+
+  /* MOVEM extra read cycle (can have side effect if extra address is not mapped or mapped to hardware impacted by read access) */
+  m68ki_read_16(ea);
 
   USE_CYCLES(count * CYC_MOVEM_W);
 }
@@ -15298,6 +15331,9 @@ static void m68k_op_movem_16_er_di(void)
       count++;
     }
 
+  /* MOVEM extra read cycle (can have side effect if extra address is not mapped or mapped to hardware impacted by read access) */
+  m68ki_read_16(ea);
+
   USE_CYCLES(count * CYC_MOVEM_W);
 }
 
@@ -15316,6 +15352,9 @@ static void m68k_op_movem_16_er_ix(void)
       ea += 2;
       count++;
     }
+
+  /* MOVEM extra read cycle (can have side effect if extra address is not mapped or mapped to hardware impacted by read access) */
+  m68ki_read_16(ea);
 
   USE_CYCLES(count * CYC_MOVEM_W);
 }
@@ -15336,6 +15375,9 @@ static void m68k_op_movem_16_er_aw(void)
       count++;
     }
 
+  /* MOVEM extra read cycle (can have side effect if extra address is not mapped or mapped to hardware impacted by read access) */
+  m68ki_read_16(ea);
+
   USE_CYCLES(count * CYC_MOVEM_W);
 }
 
@@ -15354,6 +15396,9 @@ static void m68k_op_movem_16_er_al(void)
       ea += 2;
       count++;
     }
+
+  /* MOVEM extra read cycle (can have side effect if extra address is not mapped or mapped to hardware impacted by read access) */
+  m68ki_read_16(ea);
 
   USE_CYCLES(count * CYC_MOVEM_W);
 }
@@ -15375,6 +15420,9 @@ static void m68k_op_movem_32_er_pi(void)
     }
   AY = ea;
 
+  /* MOVEM extra read cycle (can have side effect if extra address is not mapped or mapped to hardware impacted by read access) */
+  m68ki_read_16(ea);
+
   USE_CYCLES(count * CYC_MOVEM_L);
 }
 
@@ -15393,6 +15441,9 @@ static void m68k_op_movem_32_er_pcdi(void)
       ea += 4;
       count++;
     }
+
+  /* MOVEM extra read cycle (can have side effect if extra address is not mapped or mapped to hardware impacted by read access) */
+  m68ki_read_16(ea);
 
   USE_CYCLES(count * CYC_MOVEM_L);
 }
@@ -15413,6 +15464,9 @@ static void m68k_op_movem_32_er_pcix(void)
       count++;
     }
 
+  /* MOVEM extra read cycle (can have side effect if extra address is not mapped or mapped to hardware impacted by read access) */
+  m68ki_read_16(ea);
+
   USE_CYCLES(count * CYC_MOVEM_L);
 }
 
@@ -15431,6 +15485,9 @@ static void m68k_op_movem_32_er_ai(void)
       ea += 4;
       count++;
     }
+
+  /* MOVEM extra read cycle (can have side effect if extra address is not mapped or mapped to hardware impacted by read access) */
+  m68ki_read_16(ea);
 
   USE_CYCLES(count * CYC_MOVEM_L);
 }
@@ -15451,6 +15508,9 @@ static void m68k_op_movem_32_er_di(void)
       count++;
     }
 
+  /* MOVEM extra read cycle (can have side effect if extra address is not mapped or mapped to hardware impacted by read access) */
+  m68ki_read_16(ea);
+
   USE_CYCLES(count * CYC_MOVEM_L);
 }
 
@@ -15469,6 +15529,9 @@ static void m68k_op_movem_32_er_ix(void)
       ea += 4;
       count++;
     }
+
+  /* MOVEM extra read cycle (can have side effect if extra address is not mapped or mapped to hardware impacted by read access) */
+  m68ki_read_16(ea);
 
   USE_CYCLES(count * CYC_MOVEM_L);
 }
@@ -15489,6 +15552,9 @@ static void m68k_op_movem_32_er_aw(void)
       count++;
     }
 
+  /* MOVEM extra read cycle (can have side effect if extra address is not mapped or mapped to hardware impacted by read access) */
+  m68ki_read_16(ea);
+
   USE_CYCLES(count * CYC_MOVEM_L);
 }
 
@@ -15507,6 +15573,9 @@ static void m68k_op_movem_32_er_al(void)
       ea += 4;
       count++;
     }
+
+  /* MOVEM extra read cycle (can have side effect if extra address is not mapped or mapped to hardware impacted by read access) */
+  m68ki_read_16(ea);
 
   USE_CYCLES(count * CYC_MOVEM_L);
 }
@@ -18635,6 +18704,7 @@ static void m68k_op_reset(void)
   {
     m68ki_output_reset()       /* auto-disable (see m68kcpu.h) */
     USE_CYCLES(CYC_RESET);
+    m68ki_cpu.refresh_cycles += (128*MUL); /* skip one 68K bus refresh cycle as instruction processing time is longer than refresh period (128 CPU cycles on Mega Drive / Genesis) */
     return;
   }
   m68ki_exception_privilege_violation();

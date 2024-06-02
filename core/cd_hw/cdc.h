@@ -2,7 +2,7 @@
  *  Genesis Plus
  *  CD data controller (LC8951x compatible)
  *
- *  Copyright (C) 2012-2019  Eke-Eke (Genesis Plus GX)
+ *  Copyright (C) 2012-2024  Eke-Eke (Genesis Plus GX)
  *
  *  Redistribution and use of this code or any derivative works are permitted
  *  provided that the following conditions are met:
@@ -40,6 +40,9 @@
 
 #define cdc scd.cdc_hw
 
+#define CDC_MAIN_CPU_ACCESS 0x42
+#define CDC_SUB_CPU_ACCESS  0x43
+
 /* CDC hardware */
 typedef struct
 {
@@ -52,9 +55,12 @@ typedef struct
   uint8 ctrl[2];
   uint8 head[2][4];
   uint8 stat[4];
-  int cycles;
-  void (*dma_w)(unsigned int words);  /* DMA transfer callback */
+  int cycles[2];
+  void (*dma_w)(unsigned int length);  /* active DMA callback */
+  void (*halted_dma_w)(unsigned int length);  /* halted DMA callback */
   uint8 ram[0x4000 + 2352]; /* 16K external RAM (with one block overhead to handle buffer overrun) */
+  uint8 ar_mask;
+  uint8 irq; /* invert of CDC /INT output */
 } cdc_t; 
 
 /* Function prototypes */
@@ -62,10 +68,11 @@ extern void cdc_init(void);
 extern void cdc_reset(void);
 extern int cdc_context_save(uint8 *state);
 extern int cdc_context_load(uint8 *state);
-extern void cdc_dma_update(void);
+extern void cdc_dma_init(void);
+extern void cdc_dma_update(unsigned int cycles);
 extern void cdc_decoder_update(uint32 header);
 extern void cdc_reg_w(unsigned char data);
 extern unsigned char cdc_reg_r(void);
-extern unsigned short cdc_host_r(void);
+extern unsigned short cdc_host_r(uint8 cpu_access);
 
 #endif

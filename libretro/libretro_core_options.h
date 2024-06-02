@@ -42,6 +42,7 @@ extern "C" {
 
 #if defined(M68K_OVERCLOCK_SHIFT) || defined(Z80_OVERCLOCK_SHIFT)
 #define HAVE_OVERCLOCK
+#define HAVE_EQ
 #endif
 
 /*
@@ -132,6 +133,21 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "auto"
    },
    {
+      "genesis_plus_gx_vdp_mode",
+      "Force VDP Mode",
+      NULL,
+      "Overrides the VDP mode to force it to run at either 60Hz (NTSC) or 50Hz (PAL), regardless of system region.",
+      NULL,
+      "system",
+      {
+         { "auto",  "Disabled" },
+         { "60hz",  "60Hz" },
+         { "50hz",  "50Hz" },
+         { NULL, NULL },
+      },
+      "auto"
+   },
+   {
       "genesis_plus_gx_bios",
       "System Boot ROM",
       NULL,
@@ -146,8 +162,8 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "disabled"
    },
    {
-      "genesis_plus_gx_bram",
-      "CD System BRAM",
+      "genesis_plus_gx_system_bram",
+      "CD System BRAM (Requires Restart)",
       NULL,
       "When running Sega CD/Mega-CD content, specifies whether to share a single save file between all games from a specific region (Per-BIOS) or to create a separate save file for each game (Per-Game). Note that the Sega CD/Mega-CD has limited internal storage, sufficient only for a handful of titles. To avoid running out of space, the 'Per-Game' setting is recommended.",
       NULL,
@@ -158,6 +174,39 @@ struct retro_core_option_v2_definition option_defs_us[] = {
          { NULL, NULL },
       },
       "per bios"
+   },
+   {
+      "genesis_plus_gx_cart_bram",
+      "CD Backup Cart BRAM (Requires Restart)",
+      NULL,
+      "When running Sega CD/Mega-CD content, specifies whether to share a single backup ram cart for all games (Per-Cart) or to create a separate backup ram cart for each game (Per-Game).",
+      NULL,
+      "system",
+      {
+         { "per cart", "Per-Cart" },
+         { "per game", "Per-Game" },
+         { NULL, NULL },
+      },
+      "per cart"
+   },
+   {
+      "genesis_plus_gx_cart_size",
+      "CD Backup Cart BRAM Size (Requires Restart)",
+      NULL,
+      "Sets the backup ram cart size when running Sega CD/Mega-CD content. Useful when setting the backup ram cart to Per-Game to avoid multiple larger cart sizes.",
+      NULL,
+      "system",
+      {
+         { "disabled", "Disabled" },
+         { "128k",     "128Kbit"  },
+         { "256k",     "256Kbit"  },
+         { "512k",     "512Kbit"  },
+         { "1meg",     "1Mbit"    },
+         { "2meg",     "2Mbit"    },
+         { "4meg",     "4Mbit"    },
+         { NULL, NULL },
+      },
+      "4meg"
    },
    {
       "genesis_plus_gx_add_on",
@@ -173,7 +222,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
          { "none",         "None" },
          { NULL, NULL },
       },
-      "disabled"
+      "auto"
    },
    {
       "genesis_plus_gx_lock_on",
@@ -418,7 +467,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       {
          { "disabled", NULL },
          { "low-pass", "Low-Pass" },
-#if HAVE_EQ
+#ifdef HAVE_EQ
          { "EQ",       NULL },
 #endif
          { NULL, NULL },
@@ -803,7 +852,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "genesis_plus_gx_enhanced_vscroll_limit",
       "Enhanced per-tile vertical scroll limit",
       NULL,
-      "Only when Enchance per-tile vertical scroll is enabled. Adjusts the limit of the vertical scroll enhancement. When the vscroll difference between neighbouring tiles is bigger than this limit, the enhancement is disabled.",
+      "Only when Enhanced per-tile vertical scroll is enabled. Adjusts the limit of the vertical scroll enhancement. When the vscroll difference between neighbouring tiles is bigger than this limit, the enhancement is disabled.",
       NULL,
       "hacks",
       {
@@ -887,9 +936,9 @@ struct retro_core_option_v2_definition option_defs_us[] = {
    },
    {
       "genesis_plus_gx_cd_latency",
-      "CD access time",
+      "CD Access Time",
       NULL,
-        "Simulate original CD hardware latency when initiating a read or seeking to a specific location on loaded disc. This is required by a few CD games that crash if CD data is available too soon and also fixes CD audio desync issues in some games. Disabling this can be useful with MSU-MD games as it makes CD audio tracks loops more seamless.",
+      "Simulate original CD hardware latency when initiating a read or seeking to a specific location on loaded disc. This is required by a few CD games that crash if CD data is available too soon and also fixes CD audio desync issues in some games. Disabling this can be useful with MSU-MD games as it makes CD audio tracks loops more seamless.",
       NULL,
       "hacks",
       {
@@ -898,6 +947,20 @@ struct retro_core_option_v2_definition option_defs_us[] = {
          { NULL, NULL },
       },
       "enabled"
+   },
+   {
+      "genesis_plus_gx_cd_precache",
+      "CD Image Cache",
+      NULL,
+      "Load CD image to memory on startup. CHD supported only. Restart Required.",
+      NULL,
+      "hacks",
+      {
+         { "disabled", NULL },
+         { "enabled",  NULL },
+         { NULL, NULL },
+      },
+      "disabled"
    },
 #ifdef USE_PER_SOUND_CHANNELS_CONFIG
    {

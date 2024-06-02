@@ -368,7 +368,7 @@ void fill_pathname_resolve_relative(char *out_path, const char *in_refpath,
  * Makes sure not to get  two consecutive slashes
  * between directory and path.
  **/
-void fill_pathname_join(char *out_path, const char *dir,
+size_t fill_pathname_join(char *out_path, const char *dir,
       const char *path, size_t size);
 
 void fill_pathname_join_special_ext(char *out_path,

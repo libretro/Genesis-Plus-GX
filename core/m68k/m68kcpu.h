@@ -48,6 +48,7 @@
 /* Different ways to stop the CPU */
 #define STOP_LEVEL_STOP 1
 #define STOP_LEVEL_HALT 2
+#define STOP_LEVEL_WAIT 4
 
 /* Used for 68000 address error processing */
 #if M68K_EMULATE_ADDRESS_ERROR
@@ -615,13 +616,13 @@ static const uint16 m68ki_exception_cycle_table[256] =
       4*MUL, /* 22: RESERVED                                           */
       4*MUL, /* 23: RESERVED                                           */
      44*MUL, /* 24: Spurious Interrupt                                 */
-     54*MUL, /* 25: Level 1 Interrupt Autovector                       */
-     54*MUL, /* 26: Level 2 Interrupt Autovector                       */
-     54*MUL, /* 27: Level 3 Interrupt Autovector                       */
-     54*MUL, /* 28: Level 4 Interrupt Autovector                       */
-     54*MUL, /* 29: Level 5 Interrupt Autovector                       */
-     54*MUL, /* 30: Level 6 Interrupt Autovector                       */
-     54*MUL, /* 31: Level 7 Interrupt Autovector                       */
+     44*MUL, /* 25: Level 1 Interrupt Autovector                       */
+     44*MUL, /* 26: Level 2 Interrupt Autovector                       */
+     44*MUL, /* 27: Level 3 Interrupt Autovector                       */
+     44*MUL, /* 28: Level 4 Interrupt Autovector                       */
+     44*MUL, /* 29: Level 5 Interrupt Autovector                       */
+     44*MUL, /* 30: Level 6 Interrupt Autovector                       */
+     44*MUL, /* 31: Level 7 Interrupt Autovector                       */
      34*MUL, /* 32: TRAP #0 -- ASG: chanaged from 38                   */
      34*MUL, /* 33: TRAP #1                                            */
      34*MUL, /* 34: TRAP #2                                            */
@@ -858,7 +859,7 @@ INLINE uint m68ki_read_8(uint address)
   else val = READ_BYTE(temp->base, (address) & 0xffff);
 
 #ifdef HOOK_CPU
-  if (cpu_hook)
+  if (UNLIKELY(cpu_hook))
     cpu_hook(HOOK_M68K_R, 1, address, val);
 #endif
 
@@ -878,7 +879,7 @@ INLINE uint m68ki_read_16(uint address)
   else val = *(uint16 *)(temp->base + ((address) & 0xffff));
 
 #ifdef HOOK_CPU
-  if (cpu_hook)
+  if (UNLIKELY(cpu_hook))
     cpu_hook(HOOK_M68K_R, 2, address, val);
 #endif
 
@@ -898,7 +899,7 @@ INLINE uint m68ki_read_32(uint address)
   else val = m68k_read_immediate_32(address);
 
 #ifdef HOOK_CPU
-  if (cpu_hook)
+  if (UNLIKELY(cpu_hook))
     cpu_hook(HOOK_M68K_R, 4, address, val);
 #endif
 
@@ -912,7 +913,7 @@ INLINE void m68ki_write_8(uint address, uint value)
   m68ki_set_fc(FLAG_S | FUNCTION_CODE_USER_DATA) /* auto-disable (see m68kcpu.h) */
 
 #ifdef HOOK_CPU
-  if (cpu_hook)
+  if (UNLIKELY(cpu_hook))
     cpu_hook(HOOK_M68K_W, 1, address, value);
 #endif
 
@@ -929,7 +930,7 @@ INLINE void m68ki_write_16(uint address, uint value)
   m68ki_check_address_error(address, MODE_WRITE, FLAG_S | FUNCTION_CODE_USER_DATA); /* auto-disable (see m68kcpu.h) */
 
 #ifdef HOOK_CPU
-  if (cpu_hook)
+  if (UNLIKELY(cpu_hook))
     cpu_hook(HOOK_M68K_W, 2, address, value);
 #endif
 
@@ -946,7 +947,7 @@ INLINE void m68ki_write_32(uint address, uint value)
   m68ki_check_address_error(address, MODE_WRITE, FLAG_S | FUNCTION_CODE_USER_DATA) /* auto-disable (see m68kcpu.h) */
 
 #ifdef HOOK_CPU
-  if (cpu_hook)
+  if (UNLIKELY(cpu_hook))
     cpu_hook(HOOK_M68K_W, 4, address, value);
 #endif
 
@@ -1373,6 +1374,11 @@ INLINE void m68ki_exception_address_error(void)
 }
 #endif
 
+/* See MC68000 User Manual appendix B for autovectors interrupts processing time */
+/* 44 cycles + N wait-state cycles where N depends on CPU clock alignement with internal E clock (corresponding to CPU clock  / 10) when interrupt ack cycle starts */
+/* N minimal/maximal values are 6..15 cycles according to manual but real hardware measure apparently indicate 5..14 cycles (cf https://gendev.spritesmind.net/forum/viewtopic.php?f=2&t=2202&p=27485) */
+static uint m68ki_cycle_interrupts[10] = {50*MUL, 59*MUL, 58*MUL, 57*MUL, 56*MUL, 55*MUL, 54*MUL, 53*MUL, 52*MUL, 51*MUL};
+
 /* Service an interrupt request and start exception processing */
 INLINE void m68ki_exception_interrupt(uint int_level)
 {
@@ -1383,7 +1389,7 @@ INLINE void m68ki_exception_interrupt(uint int_level)
   #endif /* M68K_EMULATE_ADDRESS_ERROR */
 
   /* Turn off the stopped state */
-  CPU_STOPPED &= STOP_LEVEL_HALT;
+  CPU_STOPPED &= (STOP_LEVEL_HALT | STOP_LEVEL_WAIT);
 
   /* If we are halted, don't do anything */
   if(CPU_STOPPED)
@@ -1415,7 +1421,7 @@ INLINE void m68ki_exception_interrupt(uint int_level)
   m68ki_jump(new_pc);
 
   /* Update cycle count now */
-  USE_CYCLES(CYC_EXCEPTION[vector]);
+  USE_CYCLES(m68ki_cycle_interrupts[(m68ki_cpu.cycles / MUL) % 10]);
 }
 
 /* ASG: Check for interrupts */

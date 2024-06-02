@@ -1,7 +1,6 @@
 /* license:BSD-3-Clause
- * copyright-holders:Aaron Giles 
- */
-/***************************************************************************
+ * copyright-holders:Aaron Giles
+***************************************************************************
 
     bitstream.c
 
@@ -9,8 +8,8 @@
 
 ***************************************************************************/
 
-#include "bitstream.h"
 #include <stdlib.h>
+#include "bitstream.h"
 
 /***************************************************************************
  *  INLINE FUNCTIONS
@@ -108,9 +107,10 @@ uint32_t bitstream_read_offset(struct bitstream* bitstream)
 }
 
 
-//-------------------------------------------------
-//  flush - flush to the nearest byte
-//-------------------------------------------------
+/*-------------------------------------------------
+ *  flush - flush to the nearest byte
+ *-------------------------------------------------
+ */
 
 uint32_t bitstream_flush(struct bitstream* bitstream)
 {

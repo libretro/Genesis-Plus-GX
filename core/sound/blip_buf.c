@@ -86,7 +86,7 @@ struct blip_t
 
 #define BLIP_BUFFER_STATE_BUFFER_SIZE 16
 
-typedef struct blip_buffer_state_t
+struct blip_buffer_state_t
 {
 	fixed_t offset;
 #ifdef BLIP_MONO

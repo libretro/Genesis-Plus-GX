@@ -245,7 +245,7 @@ else ifneq (,$(findstring ios,$(platform)))
    SHARED := -dynamiclib
    ENDIANNESS_DEFINES := -DLSB_FIRST -DBYTE_ORDER=LITTLE_ENDIAN
    PLATFORM_DEFINES := -DHAVE_ZLIB
-   MAX_ROM_SIZE = 16777216
+   MAX_ROM_SIZE = 33554432
    MINVERSION :=
 
    ifeq ($(IOSSDK),)
@@ -280,6 +280,7 @@ else ifeq ($(platform), tvos-arm64)
 
    CC = cc -arch arm64 -isysroot $(IOSSDK)
    CXX = c++ -arch arm64 -isysroot $(IOSSDK)
+   MAX_ROM_SIZE = 33554432
 
 # Theos
 else ifeq ($(platform), theos_ios)
@@ -772,8 +773,13 @@ ifneq (,$(findstring msvc,$(platform)))
    CFLAGS   += -MT
    CXXFLAGS += -MT
 endif
+ifeq ($(platform), emscripten)
+   CFLAGS   += -O3 -DNDEBUG
+   CXXFLAGS += -O3 -DNDEBUG
+else
    CFLAGS   += -O2 -DNDEBUG
    CXXFLAGS += -O2 -DNDEBUG
+endif
 endif
 
 ifeq ($(SHARED_LIBVORBIS),)

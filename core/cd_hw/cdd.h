@@ -2,7 +2,7 @@
  *  Genesis Plus
  *  CD drive processor & CD-DA fader
  *
- *  Copyright (C) 2012-2022  Eke-Eke (Genesis Plus GX)
+ *  Copyright (C) 2012-2024  Eke-Eke (Genesis Plus GX)
  *
  *  Redistribution and use of this code or any derivative works are permitted
  *  provided that the following conditions are met:
@@ -70,11 +70,6 @@
 #define CD_TRAY       0x0E  /* unused */
 #define CD_TEST       0x0F  /* unusec */
 
-/* CD-DA digital filter types */
-#define CD_TYPE_DEFAULT       0x00
-#define CD_TYPE_WONDERMEGA    0x01
-#define CD_TYPE_WONDERMEGA_M2 0x02
-
 /* CD track */
 typedef struct
 {
@@ -116,7 +111,6 @@ typedef struct
 {
   uint32 cycles;
   uint32 latency;
-  int type;
   int loaded;
   int index;
   int lba;

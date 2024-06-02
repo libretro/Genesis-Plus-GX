@@ -1,8 +1,8 @@
 /***************************************************************************************
  *  Genesis Plus
- *  Mega CD / Sega CD hardware
+ *  Mega-CD / Sega CD hardware
  *
- *  Copyright (C) 2012-2022  Eke-Eke (Genesis Plus GX)
+ *  Copyright (C) 2012-2024  Eke-Eke (Genesis Plus GX)
  *
  *  Redistribution and use of this code or any derivative works are permitted
  *  provided that the following conditions are met:
@@ -50,6 +50,12 @@
 #define scd ext.cd_hw
 #endif
 
+/* CD hardware models */
+#define CD_TYPE_DEFAULT       0x00
+#define CD_TYPE_WONDERMEGA    0x01
+#define CD_TYPE_WONDERMEGA_M2 0x02
+#define CD_TYPE_CDX           0x03
+
 /* CD hardware Master Clock (50 MHz) */
 #define SCD_CLOCK 50000000
 
@@ -76,6 +82,7 @@ typedef struct
   int32 timer;                /* Timer counter */
   uint8 pending;              /* Pending interrupts */
   uint8 dmna;                 /* Pending DMNA write status */
+  uint8 type;                 /* CD hardware model */
   gfx_t gfx_hw;               /* Graphics processor */
   cdc_t cdc_hw;               /* CD data controller */
   cdd_t cdd_hw;               /* CD drive processor */
@@ -90,6 +97,6 @@ extern void scd_end_frame(unsigned int cycles);
 extern int scd_context_load(uint8 *state, char *version);
 extern int scd_context_save(uint8 *state);
 extern int scd_68k_irq_ack(int level);
-extern void prg_ram_dma_w(unsigned int words);
+extern void prg_ram_dma_w(unsigned int length);
 
 #endif

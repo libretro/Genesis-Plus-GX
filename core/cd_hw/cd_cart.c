@@ -189,7 +189,7 @@ void cd_cart_init(void)
   else
   {
     /* enable 512K backup RAM cartridge when booting from CD (Mode 2) */
-    scd.cartridge.id = 6;
+    scd.cartridge.id = cart_size;
   }
 
   /* RAM cartridge enabled ? */
