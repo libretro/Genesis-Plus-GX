@@ -1,4 +1,4 @@
-/* Copyright  (C) 2010-2018 The RetroArch team
+/* Copyright  (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this file (memmap.c).
@@ -21,6 +21,7 @@
  */
 
 #include <stdint.h>
+#include <stdlib.h>
 #include <memmap.h>
 
 #ifndef PROT_READ
@@ -130,14 +131,14 @@ int mprotect(void *addr, size_t len, int prot)
 
 #endif
 
-#if defined(__MACH__) && defined(__arm__)
+#if defined(__MACH__) && (defined(__arm__) || defined(__arm64__))
 #include <libkern/OSCacheControl.h>
 #endif
 
 int memsync(void *start, void *end)
 {
    size_t len = (char*)end - (char*)start;
-#if defined(__MACH__) && defined(__arm__)
+#if defined(__MACH__) && (defined(__arm__) || defined(__arm64__))
    sys_dcache_flush(start ,len);
    sys_icache_invalidate(start, len);
    return 0;

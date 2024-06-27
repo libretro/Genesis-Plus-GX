@@ -1,7 +1,7 @@
 /* Copyright  (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
- * The following license statement only applies to this file (memalign.c).
+ * The following license statement only applies to this file (rtime.h).
  * ---------------------------------------------------------------------------------------
  *
  * Permission is hereby granted, free of charge,
@@ -20,44 +20,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef __LIBRETRO_SDK_RTIME_H__
+#define __LIBRETRO_SDK_RTIME_H__
+
+#include <retro_common_api.h>
+
 #include <stdint.h>
-#include <stdlib.h>
+#include <stddef.h>
+#include <time.h>
 
-#include <memalign.h>
+RETRO_BEGIN_DECLS
 
-void *memalign_alloc(size_t boundary, size_t size)
-{
-   void **place   = NULL;
-   uintptr_t addr = 0;
-   void *ptr      = (void*)malloc(boundary + size + sizeof(uintptr_t));
-   if (!ptr)
-      return NULL;
+/* TODO/FIXME: Move all generic time handling functions
+ * to this file */
 
-   addr           = ((uintptr_t)ptr + sizeof(uintptr_t) + boundary)
-      & ~(boundary - 1);
-   place          = (void**)addr;
-   place[-1]      = ptr;
+/* Must be called before using rtime_localtime() */
+void rtime_init(void);
 
-   return (void*)addr;
-}
+/* Must be called upon program termination */
+void rtime_deinit(void);
 
-void memalign_free(void *ptr)
-{
-   void **p = NULL;
-   if (!ptr)
-      return;
+/* Thread-safe wrapper for localtime() */
+struct tm *rtime_localtime(const time_t *timep, struct tm *result);
 
-   p = (void**)ptr;
-   free(p[-1]);
-}
+RETRO_END_DECLS
 
-void *memalign_alloc_aligned(size_t size)
-{
-#if defined(__x86_64__) || defined(__LP64) || defined(__IA64__) || defined(_M_X64) || defined(_M_X64) || defined(_WIN64)
-   return memalign_alloc(64, size);
-#elif defined(__i386__) || defined(__i486__) || defined(__i686__) || defined(GEKKO) || defined(_M_IX86)
-   return memalign_alloc(32, size);
-#else
-   return memalign_alloc(32, size);
 #endif
-}
