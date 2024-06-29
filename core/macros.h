@@ -43,11 +43,7 @@
  * NOTE: not enabling inline functions will SEVERELY slow down emulation.
  */
 #ifndef INLINE
-#if defined(_MSC_VER)
-#define INLINE static _inline
-#else
 #define INLINE static __inline__
-#endif
 #endif /* INLINE */
 
 /* Alignment macros for cross compiler compatibility */

@@ -840,6 +840,12 @@ LIBRETRO_CFLAGS += $(BPP_DEFINES) \
 		-DHAVE_OPLL_CORE \
 		-DMAXROMSIZE=$(MAX_ROM_SIZE)
 
+ifneq (,$(findstring msvc,$(platform)))
+   LIBRETRO_CFLAGS += -DINLINE="static _inline"
+else
+   LIBRETRO_CFLAGS += -DINLINE="static inline"
+endif
+
 OBJOUT   = -o
 LINKOUT  = -o 
 
