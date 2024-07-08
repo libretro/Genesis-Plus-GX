@@ -8,7 +8,7 @@
 .core-defs:
   variables:
     JNI_PATH: libretro
-    CORENAME: genesis_plus_gx
+    CORENAME: genesis_plus_gx_wide
     MAKEFILE: Makefile.libretro
 
 # Inclusion templates, required for the build to work

@@ -7,7 +7,7 @@ image: Visual Studio 2017
 environment:
   makefile_location: "."
   makefile_name: makefile.libretro
-  target_name: genesis_plus_gx
+  target_name: genesis_plus_gx_wide
 
 configuration:
   - release
