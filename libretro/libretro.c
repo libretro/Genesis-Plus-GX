@@ -149,6 +149,7 @@ static bool restart_eq = false;
 static uint8_t temp[0x10000];
 static int16 soundbuffer[3068];
 static uint16_t bitmap_data_[720 * 576];
+static uint8_t reg0_prev = 0;
 
 static char g_rom_dir[256];
 static char g_rom_name[256];
@@ -1308,7 +1309,6 @@ static bool update_viewport(void)
 
    if (     (config.left_border != 0)
          && (reg[0] & 0x20)
-         && (bitmap.viewport.x == 0)
          && ((system_hw == SYSTEM_MARKIII) || (system_hw & SYSTEM_SMS) || (system_hw == SYSTEM_PBC)))
    {
       bmdoffset = (16 + (config.ntsc ? 24 : 0));
@@ -3962,6 +3962,13 @@ void retro_run(void)
    }
 
    soundbuffer_size = audio_update(soundbuffer);
+
+   /* Force viewport update when SMS border changes after startup undetected */
+   if (     ((system_hw == SYSTEM_MARKIII) || (system_hw & SYSTEM_SMS) || (system_hw == SYSTEM_PBC))
+         && reg[0] != reg0_prev)
+      bitmap.viewport.changed = 9;
+
+   reg0_prev = reg[0];
 
    if (bitmap.viewport.changed & 9)
    {
