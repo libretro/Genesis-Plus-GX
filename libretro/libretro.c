@@ -2743,10 +2743,11 @@ static void set_memory_maps(void)
       const uint64_t mem = RETRO_MEMDESC_SYSTEM_RAM;
       struct retro_memory_map mmaps;
       struct retro_memory_descriptor descs[] = {
-         { mem, work_ram,     0,           0xFF0000, 0, 0, 0x10000, "68KRAM" },
+         { mem, work_ram,        0,           0xFF0000, 0, 0, 0x10000, "68KRAM" },
          /* virtual address using SCD_BIT so all 512M of prg_ram can be accessed */
          /* at address $80020000 */
-         { mem, scd.prg_ram,  0, SCD_BIT | 0x020000, 0, 0, 0x80000, "PRGRAM" },
+         { mem, scd.prg_ram,     0, SCD_BIT | 0x020000, 0, 0, 0x80000, "PRGRAM" },
+         { mem, scd.word_ram_2M, 0,           0x200000, 0, 0, 0x40000, "WORDRAM" },
       };
 
       mmaps.descriptors = descs;
