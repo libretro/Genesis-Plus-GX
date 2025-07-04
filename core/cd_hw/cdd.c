@@ -1811,6 +1811,82 @@ void cdd_update(void)
   error("LBA = %d (track %d)(latency=%d)\n", cdd.lba, cdd.index, cdd.latency);
 #endif
 
+  /* check if seeking is pending */
+  if (cdd.pending)
+  {
+    /* reset track index */
+    int index = 0;
+
+    /* new LBA position */
+    int lba = ((scd.regs[0x44>>1].byte.h * 10 + scd.regs[0x44>>1].byte.l) * 60 +
+               (scd.regs[0x46>>1].byte.h * 10 + scd.regs[0x46>>1].byte.l)) * 75 +
+               (scd.regs[0x48>>1].byte.h * 10 + scd.regs[0x48>>1].byte.l) - 150;
+
+    /* CD drive latency */
+    if (!cdd.latency)
+    {
+      /* Fixes a few games hanging because they expect data to be read with some delay */
+      /* Wolf Team games (Annet Futatabi, Aisle Lord, Cobra Command, Earnest Evans, Road Avenger & Time Gal) need at least 11 interrupts delay  */
+      /* Space Adventure Cobra (2nd morgue scene) needs at least 13 interrupts delay (incl. seek time, so 11 is OK) */
+      /* By default, at least two interrupts latency is required by current emulation model (BIOS hangs otherwise) */
+      cdd.latency = 2 + 9*config.cd_latency;
+    }
+
+    /* CD drive seek time */
+    /* max. seek time = 1.5 s = 1.5 x 75 = 112.5 CDD interrupts (rounded to 120) for 270000 sectors max on disc. */
+    /* Note: This is only a rough approximation since, on real hardware, seek time is much likely not linear and */
+    /* latency much larger than above value, but this model works fine for Sonic CD (track 26 playback needs to  */
+    /* be enough delayed to start in sync with intro sequence, as compared with real hardware recording).        */
+    /* It also works fine for Switch/Panic! intro (at least 30 interrupts are needed while seeking from 00:05:63 */
+    /* to 24:03:19 in Switch or when seeking from 00:05:60 to 24:06:07 in Panic!). */
+    if (lba > cdd.lba)
+    {
+      cdd.latency += (((lba - cdd.lba) * 120 * config.cd_latency) / 270000);
+    }
+    else
+    {
+      cdd.latency += (((cdd.lba - lba) * 120 * config.cd_latency) / 270000);
+    }
+
+    /* update current LBA */
+    cdd.lba = lba;
+
+    /* get track index */
+    while ((cdd.toc.tracks[index].end <= lba) && (index < cdd.toc.last))
+      index++;
+
+    /* audio track ? */
+    if (cdd.toc.tracks[index].type == TYPE_AUDIO)
+    {
+      /* stay within track limits when seeking files */
+      if (lba < cdd.toc.tracks[index].start)
+      {
+        lba = cdd.toc.tracks[index].start;
+      }
+
+      /* seek to current track sector */
+      cdd_seek_audio(index, lba);
+    }
+
+    /* update current track index */
+    cdd.index = index;
+
+    /* seek to current subcode position */
+    if (cdd.toc.sub)
+    {
+      cdStreamSeek(cdd.toc.sub, lba * 96, SEEK_SET);
+    }
+
+    /* no audio track playing (yet) */
+    scd.regs[0x36>>1].byte.h = 0x01;
+
+    /* update CDD status with pending end status (will be reported to host once seeking has ended) */
+    cdd.status = cdd.pending;
+
+    /* clear pending flag */
+    cdd.pending = 0;
+  }
+
   /* drive latency */
   if (cdd.latency > 0)
   {
@@ -1957,82 +2033,6 @@ void cdd_update(void)
       /* udpate current track index */
       cdd.index = index;
     }
-  }
-
-  /* check if seeking is pending */
-  if (cdd.pending)
-  {
-    /* reset track index */
-    int index = 0;
-
-    /* new LBA position */
-    int lba = ((scd.regs[0x44>>1].byte.h * 10 + scd.regs[0x44>>1].byte.l) * 60 + 
-               (scd.regs[0x46>>1].byte.h * 10 + scd.regs[0x46>>1].byte.l)) * 75 +
-               (scd.regs[0x48>>1].byte.h * 10 + scd.regs[0x48>>1].byte.l) - 150;
-
-    /* CD drive latency */
-    if (!cdd.latency)
-    {
-      /* Fixes a few games hanging because they expect data to be read with some delay */
-      /* Wolf Team games (Annet Futatabi, Aisle Lord, Cobra Command, Earnest Evans, Road Avenger & Time Gal) need at least 11 interrupts delay  */
-      /* Space Adventure Cobra (2nd morgue scene) needs at least 13 interrupts delay (incl. seek time, so 11 is OK) */
-      /* By default, at least two interrupts latency is required by current emulation model (BIOS hangs otherwise) */
-      cdd.latency = 2 + 9*config.cd_latency;
-    }
-
-    /* CD drive seek time */
-    /* max. seek time = 1.5 s = 1.5 x 75 = 112.5 CDD interrupts (rounded to 120) for 270000 sectors max on disc. */
-    /* Note: This is only a rough approximation since, on real hardware, seek time is much likely not linear and */
-    /* latency much larger than above value, but this model works fine for Sonic CD (track 26 playback needs to  */
-    /* be enough delayed to start in sync with intro sequence, as compared with real hardware recording).        */
-    /* It also works fine for Switch/Panic! intro (at least 30 interrupts are needed while seeking from 00:05:63 */
-    /* to 24:03:19 in Switch or when seeking from 00:05:60 to 24:06:07 in Panic!). */
-    if (lba > cdd.lba)
-    {
-      cdd.latency += (((lba - cdd.lba) * 120 * config.cd_latency) / 270000);
-    }
-    else 
-    {
-      cdd.latency += (((cdd.lba - lba) * 120 * config.cd_latency) / 270000);
-    }
-
-    /* update current LBA */
-    cdd.lba = lba;
-
-    /* get track index */
-    while ((cdd.toc.tracks[index].end <= lba) && (index < cdd.toc.last))
-      index++;
-
-    /* audio track ? */
-    if (cdd.toc.tracks[index].type == TYPE_AUDIO)
-    {
-      /* stay within track limits when seeking files */
-      if (lba < cdd.toc.tracks[index].start) 
-      {
-        lba = cdd.toc.tracks[index].start;
-      }
-
-      /* seek to current track sector */
-      cdd_seek_audio(index, lba);
-    }
-
-    /* update current track index */
-    cdd.index = index;
-
-    /* seek to current subcode position */
-    if (cdd.toc.sub)
-    {
-      cdStreamSeek(cdd.toc.sub, lba * 96, SEEK_SET);
-    }
-
-    /* no audio track playing (yet) */
-    scd.regs[0x36>>1].byte.h = 0x01;
-
-    /* update CDD status with pending end status (will be reported to host once seeking has ended) */
-    cdd.status = cdd.pending;
-
-    /* clear pending flag */
-    cdd.pending = 0;
   }
 }
 
