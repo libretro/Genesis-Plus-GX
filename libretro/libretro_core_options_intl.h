@@ -56782,7 +56782,7 @@ struct retro_core_options_v2 options_sr = {
 #define CATEGORY_AUDIO_INFO_0_SV "Ändra inställningar för ljudenhet."
 #define CATEGORY_INPUT_LABEL_SV "Inmatning"
 #define CATEGORY_INPUT_INFO_0_SV "Ändra inmatningsinställningar för ljuspistol och/eller mus."
-#define CATEGORY_HACKS_LABEL_SV "Emulator Hacks"
+#define CATEGORY_HACKS_LABEL_SV "Emulatorhack"
 #define CATEGORY_HACKS_INFO_0_SV "Ändra inställningar för processoröverklockning och emuleringsnoggrannhet som påverkar prestanda och kompatibilitet på låg nivå."
 #define CATEGORY_CHANNEL_VOLUME_LABEL_SV "Avancerade inställningar för kanalvolym"
 #define CATEGORY_CHANNEL_VOLUME_INFO_0_SV "Ändra volymen för enskilda ljudkanaler i hårdvaran."
@@ -56858,7 +56858,7 @@ struct retro_core_options_v2 options_sr = {
 #define OPTION_VAL_RGB_SV NULL
 #define GENESIS_PLUS_GX_LCD_FILTER_LABEL_SV "LCD-spökfilter"
 #define GENESIS_PLUS_GX_LCD_FILTER_INFO_0_SV "Använd ett ”ghosting”-filter för att efterlikna LCD-skärmarna på Game Gear och Genesis Nomad."
-#define GENESIS_PLUS_GX_RENDER_LABEL_SV NULL
+#define GENESIS_PLUS_GX_RENDER_LABEL_SV "Utmatning med interlaced läge 2"
 #define GENESIS_PLUS_GX_RENDER_INFO_0_SV "Interlaced Mode 2 gör att Mega Drive/Genesis kan ge en 320x448-bild med dubbel höjd (hög upplösning) genom att rita alternativa scanlinjer varje bildruta (detta används av Sonic the Hedgehog 2 och Combat Cars flerspelarlägen). ”Double Field” efterliknar originalhårdvaran och ger en skarp bild med flimmer/interlacing-artefakter. ”Single Field” använder ett deinterlacing-filter som stabiliserar bilden men orsakar lätt oskärpa."
 #define OPTION_VAL_SINGLE_FIELD_SV "Enkelt fält"
 #define OPTION_VAL_DOUBLE_FIELD_SV "Dubbelt fält"
