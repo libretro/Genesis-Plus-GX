@@ -239,7 +239,7 @@ static void OPLL2413_Update(int* buffer, int length)
   int i, j;
   for (i = 0; i < length; i++)
   {
-    OPLL_Clock(&opll, opll_accm[opll_cycles]);
+    OPLL_Clock(&opll, (int32_t *)opll_accm[opll_cycles]);
     opll_cycles = (opll_cycles + 1) % 18;
     if (opll_cycles == 0)
     {

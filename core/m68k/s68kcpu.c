@@ -2,6 +2,8 @@
 /*                            SUB 68K CORE                                  */
 /* ======================================================================== */
 
+#define DEBUG_TRACE 0
+
 extern int scd_68k_irq_ack(int level);
 
 #define m68ki_cpu s68k
@@ -18,6 +20,10 @@ extern int scd_68k_irq_ack(int level);
 #include "s68kconf.h"
 #include "m68kcpu.h"
 #include "m68kops.h"
+
+#if DEBUG_TRACE
+#include "s68kd.h"
+#endif
 
 /* ======================================================================== */
 /* ================================= DATA ================================= */
@@ -253,8 +259,14 @@ void s68k_run(unsigned int cycles)
     /* Set the address space for reads */
     m68ki_use_data_space() /* auto-disable (see m68kcpu.h) */
 
-    /* Save current instruction PC */
-    s68k.prev_pc = REG_PC;
+	/* Save current instruction PC */
+	s68k.prev_pc = REG_PC;
+
+#if DEBUG_TRACE
+	{
+		trace_s68k();
+	}
+#endif
 
     /* Decode next instruction */
     REG_IR = m68ki_read_imm_16();

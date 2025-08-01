@@ -39,7 +39,8 @@
 #ifndef _STATE_H_
 #define _STATE_H_
 
-#define STATE_SIZE    0xfd000
+//#define STATE_SIZE    0x120000
+#define STATE_SIZE    0x200000
 #define STATE_VERSION "GENPLUS-GX 1.7.6"
 
 #define load_param(param, size) \

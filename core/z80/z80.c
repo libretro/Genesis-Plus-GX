@@ -3428,6 +3428,16 @@ void z80_run(unsigned int cycles)
       if (Z80.cycles >= cycles) return;
     }
 
+
+//if(PC == 0x28C)
+	if(0)
+	{
+		static FILE *fp = 0;
+		if(!fp) fp = fopen("trace-z80.txt", "w");
+		fprintf(fp, "%X %X - %X %X %X %X\n", PC, zbank, A, BC, DE, HL);
+	}
+
+
     Z80.after_ei = FALSE;
     R++;
     EXEC_INLINE(op,ROP());

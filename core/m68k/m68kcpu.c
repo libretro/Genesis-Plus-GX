@@ -2,6 +2,8 @@
 /*                            MAIN 68K CORE                                 */
 /* ======================================================================== */
 
+#define DEBUG_TRACE 0
+
 extern int vdp_68k_irq_ack(int int_level);
 
 #define m68ki_cpu m68k
@@ -31,6 +33,11 @@ static int irq_latency;
 
 m68ki_cpu_core m68k;
 
+#if DEBUG_TRACE
+#include <windows.h>
+#include "m68kd.h"
+#include "shared.h"
+#endif
 
 /* ======================================================================== */
 /* =============================== CALLBACKS ============================== */
@@ -294,6 +301,13 @@ void m68k_run(unsigned int cycles)
     /* Trigger execution hook */
     if (UNLIKELY(cpu_hook))
       cpu_hook(HOOK_M68K_E, 0, REG_PC, 0);
+#endif
+
+#if DEBUG_TRACE
+	{
+		m68k.prev_pc = m68k.pc;
+		trace_m68k();
+	}
 #endif
 
     /* Decode next instruction */

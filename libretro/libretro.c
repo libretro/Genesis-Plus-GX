@@ -144,14 +144,22 @@ static uint8_t brm_format[0x40] =
 };
 uint8_t cart_size;
 
+#define MAX_SOUND 768000
+
+#ifdef FRONTEND_SUPPORTS_RGB888
+	#define RETRO_PITCH uint32_t
+#else
+	#define RETRO_PITCH uint16_t
+#endif
+
 static bool is_running = 0;
 static bool restart_eq = false;
 static uint8_t temp[0x10000];
-static int16 soundbuffer[3068];
-static uint16_t bitmap_data_[720 * 576];
+static int16 soundbuffer[MAX_SOUND / 50 * 4 * 2];
+static RETRO_PITCH bitmap_data_[720 * 576];
 static uint8_t reg0_prev = 0;
 
-static char g_rom_dir[256];
+char g_rom_dir[256];
 static char g_rom_name[256];
 static const void *g_rom_data = NULL;
 static size_t g_rom_size      = 0;
@@ -201,7 +209,7 @@ static uint32_t overclock_delay;
 static bool libretro_supports_option_categories = false;
 static bool libretro_supports_bitmasks          = false;
 
-#define SOUND_FREQUENCY 44100
+#define SOUND_FREQUENCY MAX_SOUND
 
 /*EQ settings*/
 #define HAVE_EQ
@@ -225,6 +233,10 @@ static bool update_audio_latency           = false;
 #ifdef USE_PER_SOUND_CHANNELS_CONFIG
 static bool show_advanced_av_settings      = true;
 #endif
+
+static unsigned video_ramp = 0;
+static unsigned volume_master = 100;
+static unsigned sampling_rate = 48000;
 
 static void retro_audio_buff_status_cb(
       bool active, unsigned occupancy, bool underrun_likely)
@@ -937,7 +949,8 @@ static void draw_cursor(int16_t x, int16_t y, uint16_t color)
    int i;
 
    /* crosshair center position */   
-   uint16_t *ptr = (uint16_t *)bitmap.data + ((bitmap.viewport.y + y) * bitmap.width) + x + bitmap.viewport.x;
+   RETRO_PITCH *ptr = (uint32_t *)bitmap.data + ((bitmap.viewport.y + y) * bitmap.width) + x + bitmap.viewport.x;
+   RETRO_PITCH white = (RETRO_PITCH) (-1);
 
    /* default crosshair dimension */
    int x_start = x - 3;
@@ -957,9 +970,9 @@ static void draw_cursor(int16_t x, int16_t y, uint16_t color)
 
    /* draw crosshair */
    for (i = (x_start - x); i <= (x_end - x); i++)
-      ptr[i] = (i & 1) ? color : 0xffff;
+      ptr[i] = (i & 1) ? color : white;
    for (i = (y_start - y); i <= (y_end - y); i++)
-      ptr[i * bitmap.width] = (i & 1) ? color : 0xffff;
+      ptr[i * bitmap.width] = (i & 1) ? color : white;
 }
 
 static void init_bitmap(void)
@@ -967,7 +980,7 @@ static void init_bitmap(void)
    memset(&bitmap, 0, sizeof(bitmap));
    bitmap.width      = 720;
    bitmap.height     = 576;
-   bitmap.pitch      = 720 * 2;
+   bitmap.pitch      = 720 * sizeof(RETRO_PITCH);
    bitmap.data       = (uint8_t *)bitmap_data_;
 }
 
@@ -1320,9 +1333,9 @@ static bool update_viewport(void)
    else
       bmdoffset = vwoffset = 0;
 
-   vwidth  = bitmap.viewport.w + (bitmap.viewport.x * 2);
-   vheight = bitmap.viewport.h + (bitmap.viewport.y * 2);
-   vaspect_ratio = calculate_display_aspect_ratio();
+  vwidth  = bitmap.viewport.w + (bitmap.viewport.x * 2);
+  vheight = bitmap.viewport.h + (bitmap.viewport.y * 2);
+  vaspect_ratio = calculate_display_aspect_ratio();
 
    if (config.ntsc)
    {
@@ -1607,7 +1620,7 @@ static void check_variables(bool first_run)
           };
 
           /* framerate might have changed, reinitialize audio timings */
-          audio_set_rate(44100, 0);
+          audio_set_rate(sampling_rate, 0);
           
           /* reinitialize I/O region register */
           if (system_hw == SYSTEM_MD)
@@ -1688,7 +1701,7 @@ static void check_variables(bool first_run)
           };
 
           /* framerate might have changed, reinitialize audio timings */
-          audio_set_rate(44100, 0);
+          audio_set_rate(sampling_rate, 0);
 
           /* reinitialize I/O region register */
           if (system_hw == SYSTEM_MD)
@@ -1859,11 +1872,35 @@ static void check_variables(bool first_run)
       config.mono = 0; 
   }
 
+  var.key = "genesis_plus_gx_audio_master_volume";
+  environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
+  {
+    volume_master = (!var.value) ? 100 : atoi(var.value);    
+  }
+
+  var.key = "genesis_plus_gx_audio_sampling_rate";
+  environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
+  {
+    unsigned old_value = sampling_rate;
+    sampling_rate = (!var.value) ? 48000 : atoi(var.value);
+  }
+
+  var.key = "genesis_plus_gx_audio_lowpass_cutoff";
+  environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
+  {
+    extern int set_blip_lowpass(int rate);
+    unsigned new_value;
+
+    new_value = (!var.value) ? 0 : atoi(var.value);
+    set_blip_lowpass(new_value);
+  }
 
   var.key = "genesis_plus_gx_psg_preamp";
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
     config.psg_preamp = (!var.value) ? 150: atoi(var.value);
+    config.psg_preamp = (config.psg_preamp * volume_master) / 100;
+
     if ((system_hw & SYSTEM_PBC) == SYSTEM_MD)
     {
       psg_config(0, config.psg_preamp, 0xff);
@@ -1878,18 +1915,21 @@ static void check_variables(bool first_run)
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
     config.fm_preamp = (!var.value) ? 100: atoi(var.value);
+    config.fm_preamp = (config.fm_preamp * volume_master) / 100;
   }
 
   var.key = "genesis_plus_gx_cdda_volume";
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
     config.cdda_volume = (!var.value) ? 100: atoi(var.value);
+    config.cdda_volume = (config.cdda_volume * volume_master) / 100;
   }
 
   var.key = "genesis_plus_gx_pcm_volume";
   environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
   {
     config.pcm_volume = (!var.value) ? 100: atoi(var.value);
+    config.pcm_volume = (config.pcm_volume * volume_master) / 100;
   }
 
   var.key = "genesis_plus_gx_audio_filter";
@@ -2011,6 +2051,7 @@ static void check_variables(bool first_run)
   {
     orig_value = config.ntsc;
 
+#if 0
     if (!var.value || !strcmp(var.value, "disabled"))
       config.ntsc = 0;
     else if (var.value && !strcmp(var.value, "monochrome"))
@@ -2037,6 +2078,7 @@ static void check_variables(bool first_run)
       sms_ntsc_init(sms_ntsc, &sms_ntsc_rgb);
       md_ntsc_init(md_ntsc,   &md_ntsc_rgb);
     }
+#endif
 
     if (orig_value != config.ntsc)
       update_viewports = true;
@@ -2107,6 +2149,23 @@ static void check_variables(bool first_run)
       config.render = 1;
     if (orig_value != config.render)
       update_viewports = true;
+  }
+
+  var.key             = "genesis_plus_gx_video_ramp";
+  environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
+  {
+    extern void palette_libretro_init(int type);
+    int old_value = video_ramp;
+
+    if (!var.value || !strcmp(var.value, "Linear"))
+      video_ramp = 0;
+    else if (!strcmp(var.value, "Hardware"))
+      video_ramp = 1;
+    else if (!strcmp(var.value, "Sgb"))
+      video_ramp = 2;
+
+    if (old_value != video_ramp)
+      palette_libretro_init(video_ramp);
   }
 
   var.key = "genesis_plus_gx_gun_cursor";
@@ -2273,7 +2332,7 @@ static void check_variables(bool first_run)
 #ifdef HAVE_OVERCLOCK
     overclock_delay = OVERCLOCK_FRAME_DELAY;
 #endif
-    audio_init(SOUND_FREQUENCY, 0);
+    audio_init(sampling_rate, 0);
     memcpy(temp, sram.sram, sizeof(temp));
     system_init();
     system_reset();
@@ -3165,7 +3224,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 
    info->geometry.aspect_ratio  = vaspect_ratio;
    info->timing.fps             = (double)(system_clock) / (double)lines_per_frame / (double)MCYCLES_PER_LINE;
-   info->timing.sample_rate     = SOUND_FREQUENCY;
+   info->timing.sample_rate     = sampling_rate;
 
    if (!retro_fps)
       retro_fps = info->timing.fps;
@@ -3491,6 +3550,13 @@ bool retro_load_game(const struct retro_game_info *info)
          if (log_cb)
             log_cb(RETRO_LOG_INFO, "Frontend supports RGB565 - will use that instead of XRGB1555.\n");
    }
+#elif defined(FRONTEND_SUPPORTS_RGB888)
+   {
+      unsigned rgb888 = RETRO_PIXEL_FORMAT_XRGB8888;
+      if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &rgb888))
+         if (log_cb)
+            log_cb(RETRO_LOG_INFO, "Frontend supports RGB888 - will use that instead of XRGB565.\n");
+   }
 #endif
 
    sms_ntsc = calloc(1, sizeof(sms_ntsc_t));
@@ -3666,7 +3732,7 @@ bool retro_load_game(const struct retro_game_info *info)
       }
    }
 
-   audio_init(SOUND_FREQUENCY, 0);
+   audio_init(sampling_rate, 0);
    system_init();
    system_reset();
    is_running = false;
@@ -4006,9 +4072,9 @@ void retro_run(void)
       retro_led_interface();
 
    if (!do_skip)
-      video_cb(bitmap.data + bmdoffset, vwidth - vwoffset, vheight, 720 * 2);
+      video_cb(bitmap.data + bmdoffset, vwidth - vwoffset, vheight, 720 * sizeof(RETRO_PITCH));	
    else
-      video_cb(NULL, vwidth - vwoffset, vheight, 720 * 2);
+      video_cb(NULL, vwidth - vwoffset, vheight, 720 * sizeof(RETRO_PITCH));
 
    audio_cb(soundbuffer, soundbuffer_size);
 }

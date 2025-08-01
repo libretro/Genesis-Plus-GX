@@ -1183,7 +1183,7 @@ static int init_tables(void)
       n = n>>1;
 
     /* waveform 0: standard sinus  */
-    sin_tab[ i ] = n*2 + (m>=0.0? 0: 1 );
+    sin_tab[ i ] = n*2 + ((m>=0.0)? 0: 1 );
 
     /* waveform 1:  __      __     */
     /*             /  \____/  \____*/

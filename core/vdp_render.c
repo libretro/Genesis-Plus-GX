@@ -968,6 +968,81 @@ INLINE void merge(uint8 *srca, uint8 *srcb, uint8 *dst, uint8 *table, int width)
 /* Pixel color lookup tables initialization                                 */
 /*--------------------------------------------------------------------------*/
 
+void palette_libretro_init(int type)
+{
+  int r, g, b, i;
+
+  /* Initialize Mode 5 pixel color look-up tables */
+  for (i = 0; i < 0x200; i++)
+  {
+    /* CRAM 9-bit value (BBBGGGRRR) */
+    r = (i >> 0) & 7;
+    g = (i >> 3) & 7;
+    b = (i >> 6) & 7;
+
+    /* Convert to output pixel format */
+	if (type == 0)
+	{
+		static int linear_lut[15] = { 0, 18, 36, 55, 73, 91, 109, 128, 146, 164, 182, 200, 219, 237, 255 };
+
+		pixel_lut[0][i] = (0xff << 24) | (linear_lut[r+0] << 16) | (linear_lut[g+0] << 8) | (linear_lut[b+0] << 0);
+		pixel_lut[1][i] = (0xff << 24) | (linear_lut[r*2] << 16) | (linear_lut[g*2] << 8) | (linear_lut[b*2] << 0);
+		pixel_lut[2][i] = (0xff << 24) | (linear_lut[r+7] << 16) | (linear_lut[g+7] << 8) | (linear_lut[b+7] << 0);
+	}
+	else if (type == 1)
+	{
+		static int hardware_lut[15] = { 0, 27, 49, 71, 87, 103, 119, 130, 146, 157, 174, 190, 206, 228, 255 };  /* non-linear dac ramp */
+
+		pixel_lut[0][i] = (0xff << 24) | (hardware_lut[r+0] << 16) | (hardware_lut[g+0] << 8) | (hardware_lut[b+0] << 0);
+		pixel_lut[1][i] = (0xff << 24) | (hardware_lut[r*2] << 16) | (hardware_lut[g*2] << 8) | (hardware_lut[b*2] << 0);
+		pixel_lut[2][i] = (0xff << 24) | (hardware_lut[r+7] << 16) | (hardware_lut[g+7] << 8) | (hardware_lut[b+7] << 0);
+	}
+	else if (type == 2)
+	{
+		static int sgb_lut[15] = { 0, 9, 27, 42, 58, 76, 94, 114, 133, 153, 173, 192, 211, 229, 255 };
+		static int hardware_lut[15] = { 0, 27, 49, 71, 87, 103, 119, 130, 146, 157, 174, 190, 206, 228, 255 };
+
+		static int sgb_hardware[15];
+		for(int lcv = 0; lcv < 15; lcv++) {
+#if 1
+			sgb_hardware[lcv] = (sgb_lut[lcv] + hardware_lut[lcv]) / 2;
+#else
+			sgb_hardware[lcv] = sgb_lut[lcv];
+#endif
+		}
+
+		pixel_lut[0][i] = (0xff << 24) | (sgb_hardware[r+0] << 16) | (sgb_hardware[g+0] << 8) | (sgb_hardware[b+0] << 0);
+		pixel_lut[1][i] = (0xff << 24) | (sgb_hardware[r*2] << 16) | (sgb_hardware[g*2] << 8) | (sgb_hardware[b*2] << 0);
+		pixel_lut[2][i] = (0xff << 24) | (sgb_hardware[r+7] << 16) | (sgb_hardware[g+7] << 8) | (sgb_hardware[b+7] << 0);
+	}
+  }
+
+
+  /* Mega Drive VDP only */
+  if (system_hw & SYSTEM_MD)
+  {
+	/* Reset color palette */
+	if (reg[1] & 0x04)
+    {
+		/* Mode 5 */
+		/* color_update_m5(0x00, *(uint16 *)&cram[border << 1]); */
+		for (i = 1; i < 0x40; i++)
+		{
+			color_update_m5(i, *(uint16 *)&cram[i << 1]);
+		}
+	}
+	else
+	{
+		/* Mode 4 */
+		for (i = 0; i < 0x20; i++)
+		{
+			color_update_m4(i, *(uint16 *)&cram[i << 1]);
+		}
+		/* color_update_m4(0x40, *(uint16 *)&cram[(0x10 | (border & 0x0F)) << 1]); */
+	}
+  }
+}
+
 static void palette_init(void)
 {
   int r, g, b, i;

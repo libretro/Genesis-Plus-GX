@@ -983,6 +983,36 @@ static void OPN2_ChOutput(ym3438_t *chip)
     chip->mol = 0;
     chip->mor = 0;
 
+#if 1
+/* https://jsgroth.dev/blog/posts/sega-cd-pcm-interpolation/ */
+	{
+		static Bit16s ym[6][6] = {0,0,0,0,0,0};  /* hermite 6p */
+		float x = 0;  /* fractional pitch */
+		float c0,c1,c2,c3;
+		int ch = 0; //chip->channel;
+		int out_ex;
+
+		ym[ch][0] = ym[ch][1];
+		ym[ch][1] = ym[ch][2];
+		ym[ch][2] = ym[ch][3];
+		ym[ch][3] = ym[ch][4];
+		ym[ch][4] = ym[ch][5];
+		ym[ch][5] = out;
+
+		c0 = ym[ch][2];
+		c1 = 1.0/12.0 * (ym[ch][0] - ym[ch][4]) + 2.0/3.0 * (ym[ch][3] - ym[ch][1]);
+		c2 = 5.0/4.0 * ym[ch][1] - 7/3 * ym[ch][2] + 5.0/3.0 * ym[ch][3] - 1.0/2.0 * ym[ch][4] + 1.0/12.0 * ym[ch][5] - 1.0/6.0 * ym[ch][0];
+		c3 = 1.0/12.0 * (ym[ch][0] - ym[ch][5]) + 7.0/12.0 * (ym[ch][4] - ym[ch][1]) + 4.0/3.0 * (ym[ch][2] - ym[ch][3]);
+
+		out_ex = (Bit16s) (((c3 * x + c2) * x + c1) * x + c0);
+		if (out_ex > 32767)
+			out_ex = 32767;
+		else if(out_ex < -32768)
+			out_ex = -32768;
+		out = (Bit16s) out_ex;
+	}
+#endif
+
     if (chip_type & ym3438_mode_ym2612)
     {
         out_en = ((cycles & 3) == 3) || test_dac;

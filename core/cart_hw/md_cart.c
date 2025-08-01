@@ -94,6 +94,8 @@ static void topshooter_w(uint32 address, uint32 data);
 static uint32 tekken_regs_r(uint32 address);
 static void tekken_regs_w(uint32 address, uint32 data);
 
+#include "paprium.h"
+
 /* Games that need extra hardware emulation:
   - copy protection device
   - custom ROM banking device
@@ -586,6 +588,15 @@ void md_cart_init(void)
     /* initialize SPI EEPROM board */
     eeprom_spi_init();
   }
+  else if (strstr(rominfo.product,"T-574120-00"))
+  {
+    cart.special |= HW_PAPRIUM;
+
+	paprium_init();
+ 
+    /* initialize SPI EEPROM board */
+    eeprom_spi_init();
+  }
   else if (strstr(rominfo.ROMType,"SF") && strstr(rominfo.product,"001"))
   {
     /* SF-001 mapper */
@@ -863,6 +874,12 @@ void md_cart_reset(int hard_reset)
     megasd_reset();
   }
 
+  /* MegaSD hardware */
+  if (cart.special & HW_PAPRIUM)
+  {
+    paprium_reset();
+  }
+
   /* SVP chip */
   if (svp)
   {
@@ -950,6 +967,11 @@ int md_cart_context_save(uint8 *state)
     bufferptr += megasd_context_save(&state[bufferptr]);
   }
 
+  if (cart.special & HW_PAPRIUM)
+  {
+    save_param(&paprium_s, sizeof(paprium_s));
+  }
+
   return bufferptr;
 }
 
@@ -1010,6 +1032,15 @@ int md_cart_context_load(uint8 *state)
   if (cart.special & HW_MEGASD)
   {
     bufferptr += megasd_context_load(&state[bufferptr]);
+  }
+
+  if (cart.special & HW_PAPRIUM)
+  {
+    load_param(&paprium_s, sizeof(paprium_s));
+
+	paprium_map();
+
+    log_cb(RETRO_LOG_ERROR, "\n\n\n  ############################\n\n\n");
   }
 
   return bufferptr;

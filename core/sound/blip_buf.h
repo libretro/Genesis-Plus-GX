@@ -10,7 +10,23 @@
 
 /** First parameter of most functions is blip_t*, or const blip_t* if nothing
 is changed. */
-typedef struct blip_t blip_t;
+typedef unsigned long long fixed_t;
+typedef signed int buf_t;
+typedef struct blip_t
+{
+	fixed_t factor;
+	fixed_t offset;
+	int size;
+	int clock_rate;
+	int sample_rate;
+#ifdef BLIP_MONO
+	buf_t integrator;
+	buf_t* buffer;
+#else
+	buf_t integrator[2];
+	buf_t* buffer[2];
+#endif
+} blip_t;
 typedef struct blip_buffer_state_t blip_buffer_state_t;
 
 /** Creates new buffer that can hold at most sample_count samples. Sets rates
@@ -24,7 +40,7 @@ void blip_set_rates( blip_t*, double clock_rate, double sample_rate );
 
 enum { /** Maximum clock_rate/sample_rate ratio. For a given sample_rate,
 clock_rate must not be greater than sample_rate*blip_max_ratio. */
-blip_max_ratio = 1 << 20 };
+blip_max_ratio = 1 << 30 };
 
 /** Clears entire buffer. Afterwards, blip_samples_avail() == 0. */
 void blip_clear( blip_t* );
@@ -52,7 +68,7 @@ samples available. */
 int blip_clocks_needed( const blip_t*, int sample_count );
 
 enum { /** Maximum number of samples that can be generated from one time frame. */
-blip_max_frame = 4000 };
+blip_max_frame = 768000 / 50 };
 
 /** Makes input clocks before clock_duration available for reading as output
 samples. Also begins new time frame at clock_duration, so that clock time 0 in
@@ -75,6 +91,7 @@ int blip_read_samples( blip_t*, short out [], int count);
 
 /* Same as above function except sample is mixed from three blip buffers source */
 int blip_mix_samples( blip_t* m1, blip_t* m2, blip_t* m3, short out [], int count);
+int blip_mix_samples_2( blip_t* m1, blip_t* m2, short out [], int count);
 
 /** Frees buffer. No effect if NULL is passed. */
 void blip_delete( blip_t* );

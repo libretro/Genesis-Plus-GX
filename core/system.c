@@ -42,8 +42,6 @@
 #include "shared.h"
 #include "eq.h"
 
-extern int8 audio_hard_disable;
-
 /* Global variables */
 t_bitmap bitmap;
 t_snd snd;
@@ -87,6 +85,14 @@ int audio_init(int samplerate, double framerate)
       audio_shutdown();
       return -1;
     }
+  }
+
+  /* Cart sound */
+  snd.blips[3] = blip_new(samplerate / 10);
+  if (!snd.blips[3])
+  {
+    audio_shutdown();
+    return -1;
   }
 
   /* Initialize resampler internal rates */
@@ -145,6 +151,8 @@ void audio_set_rate(int samplerate, double framerate)
     cdd_init(samplerate);
   }
 
+  blip_set_rates(snd.blips[3], 48000, samplerate);
+
   /* Reinitialize internal rates */
   snd.sample_rate = samplerate;
   snd.frame_rate  = framerate;
@@ -155,7 +163,7 @@ void audio_reset(void)
   int i;
   
   /* Clear blip buffers */
-  for (i=0; i<3; i++)
+  for (i=0; i<4; i++)
   {
     if (snd.blips[i])
     {
@@ -185,12 +193,11 @@ void audio_shutdown(void)
   int i;
   
   /* Delete blip buffers */
-  for (i=0; i<3; i++)
+  for (i=0; i<4; i++)
   {
-    blip_delete(snd.blips[i]);
+    if (snd.blips[i])
+      blip_delete(snd.blips[i]);
     snd.blips[i] = 0;
-    blip_delete_buffer_state(snd.blip_states[i]);
-    snd.blip_states[i] = 0;
   }
 }
 
@@ -199,8 +206,22 @@ int audio_update(int16 *buffer)
   /* run sound chips until end of frame */
   int size = sound_update(mcycles_vdp);
 
+  if (cart.special & HW_PAPRIUM)
+  {
+    extern void paprium_audio(int samples);
+    paprium_audio(size);
+
+#ifdef ALIGN_SND
+    /* return an aligned number of samples if required */
+    size &= ALIGN_SND;
+#endif
+
+    /* resample & mix FM/PSG, PCM & Cart streams to output buffer */
+    blip_mix_samples_2(snd.blips[0], snd.blips[3], buffer, size);
+  }
+
   /* Mega CD sound hardware enabled ? */
-  if (snd.blips[1] && snd.blips[2])
+  else if (snd.blips[1] && snd.blips[2])
   {
     /* sync PCM chip with other sound chips */
     pcm_update(size);
@@ -213,14 +234,6 @@ int audio_update(int16 *buffer)
     size &= ALIGN_SND;
 #endif
 
-    if (audio_hard_disable)
-    {
-      blip_discard_samples_dirty(snd.blips[0], size);
-      blip_discard_samples_dirty(snd.blips[1], size);
-      blip_discard_samples_dirty(snd.blips[2], size);
-      return 0;
-    }
-
     /* resample & mix FM/PSG, PCM & CD-DA streams to output buffer */
     blip_mix_samples(snd.blips[0], snd.blips[1], snd.blips[2], buffer, size);
   }
@@ -230,12 +243,6 @@ int audio_update(int16 *buffer)
     /* return an aligned number of samples if required */
     size &= ALIGN_SND;
 #endif
-
-    if (audio_hard_disable)
-    {
-      blip_discard_samples_dirty(snd.blips[0], size);
-      return 0;
-    }
 
     /* resample FM/PSG mixed stream to output buffer */
     blip_read_samples(snd.blips[0], buffer, size);

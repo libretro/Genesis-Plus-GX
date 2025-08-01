@@ -190,7 +190,8 @@ void cdd_init(int samplerate)
 {
   /* CD-DA is running by default at 44100 Hz */
   /* Audio stream is resampled to desired rate using Blip Buffer */
-  blip_set_rates(snd.blips[2], 44100, samplerate);
+  //blip_set_rates(snd.blips[2], 44100, samplerate);
+  blip_set_rates(snd.blips[2], 48000, samplerate);	/* paprium hack */
 }
 
 void cdd_reset(void)

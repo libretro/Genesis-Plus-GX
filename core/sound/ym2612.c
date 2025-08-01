@@ -1843,7 +1843,7 @@ static void init_tables(void)
       n = n>>1;
 
     /* 13-bits (8.5) value is formatted for above 'Power' table */
-    sin_tab[ i ] = n*2 + (m>=0.0? 0: 1 );
+    sin_tab[ i ] = n*2 + ((m>=0.0)? 0: 1 );
   }
 
   /* build LFO PM modulation table */

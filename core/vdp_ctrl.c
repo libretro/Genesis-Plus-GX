@@ -42,10 +42,23 @@
 #include "shared.h"
 #include "hvc.h"
 
+#if 0
+#include <windows.h>
+#include <stdio.h>
+#endif
+
+//#define DEBUG_DMA
+//#define DEBUG_VDP
+
+extern retro_log_printf_t log_cb;
+static int debug_dma;
+static int debug_dma_once;
+
 extern int8 reset_do_not_clear_buffers;
 static int8 do_not_invalidate_tile_cache;
 
 static void vdp_set_all_vram(const uint8 *src);
+	static char error_str[512];
 
 /* Mark a pattern as modified */
 #define MARK_BG_DIRTY(addr)                         \
@@ -689,8 +702,19 @@ void vdp_dma_update(unsigned int cycles)
   error("[%d(%d)][%d(%d)] DMA type %d (%d access/line)(%d cycles left)-> %d access (%d remaining) (%x)\n", v_counter, (v_counter + (cycles - mcycles_vdp)/MCYCLES_PER_LINE)%lines_per_frame, cycles, cycles%MCYCLES_PER_LINE,dma_type, rate, dma_cycles, dma_bytes, dma_length, m68k_get_reg(M68K_REG_PC));
 #endif
 
+#if 0
+static char error_str[512];
+sprintf(error_str, "[%d(%d)][%d(%d)] DMA type %d (%d access/line)(%d cycles left)-> %d access (%d remaining) (%x)\n", v_counter, (v_counter + (cycles - mcycles_vdp)/MCYCLES_PER_LINE)%lines_per_frame, cycles, cycles%MCYCLES_PER_LINE,dma_type, rate, dma_cycles, dma_bytes, dma_length, m68k_get_reg(M68K_REG_PC));
+log_cb(RETRO_LOG_ERROR, error_str);
+#endif
+
   /* Check if DMA can be finished within current timeframe */
-  if (dma_length < dma_bytes)
+  extern int fast_dma_hack;
+  if( fast_dma_hack ) {
+    dma_bytes = dma_length;
+	dma_cycles = (1 * MCYCLES_PER_LINE) / rate;
+  }
+  else if (dma_length < dma_bytes)
   {
     /* Adjust remaining DMA bytes */
     dma_bytes = dma_length;
@@ -740,6 +764,8 @@ void vdp_dma_update(unsigned int cycles)
     /* Check if DMA is finished */
     if (!dma_length)
     {
+      debug_dma = 0;
+
       /* DMA source address registers are incremented during DMA (even DMA Fill) */
       uint16 end = reg[21] + (reg[22] << 8) + reg[19] + (reg[20] << 8);
       reg[21] = end & 0xff;
@@ -1222,6 +1248,55 @@ unsigned int vdp_68k_ctrl_r(unsigned int cycles)
 {
   unsigned int temp;
 
+#if 0
+	static int debug_dump = 0;
+
+	if( GetAsyncKeyState(VK_OEM_PERIOD) ) {
+		if( debug_dump == 0 ) {
+			FILE *fp = fopen("vram.bin","wb");
+			int lcv;
+			if(fp) {
+				debug_dump = 1;
+				for( lcv = 0; lcv < 0x10000; lcv += 2 ) {
+					fwrite(vram + lcv + 1, 1, 1, fp);
+					fwrite(vram + lcv + 0, 1, 1, fp);
+				}
+				fclose(fp);
+			}
+
+			fp = fopen("ram.bin","wb");
+			if(fp) {
+				debug_dump = 1;
+				for( lcv = 0; lcv < 0x10000; lcv += 2 ) {
+					fwrite(m68k.memory_map[0xff].base + lcv + 1, 1, 1, fp);
+					fwrite(m68k.memory_map[0xff].base + lcv + 0, 1, 1, fp);
+				}
+				fclose(fp);
+			}
+
+			fp = fopen("stm32.bin","wb");
+			if(fp) {
+				debug_dump = 1;
+				for( lcv = 0; lcv < 0x10000; lcv += 2 ) {
+					fwrite(m68k.memory_map[0x00].base + lcv + 1, 1, 1, fp);
+					fwrite(m68k.memory_map[0x00].base + lcv + 0, 1, 1, fp);
+				}
+				fclose(fp);
+			}
+
+			fp = fopen("z80.bin","wb");
+			if(fp) {
+				debug_dump = 1;
+				fwrite(zram, 1, 0x2000, fp);
+				fclose(fp);
+			}
+		}
+	}
+	else {
+		debug_dump = 0;
+	}
+#endif
+
   /* Cycle-accurate VDP status read (adjust CPU time with current instruction execution time) */
   cycles += m68k_cycles();
 
@@ -1288,6 +1363,13 @@ unsigned int vdp_68k_ctrl_r(unsigned int cycles)
 #ifdef LOGVDP
   error("[%d(%d)][%d(%d)] VDP 68k status read -> 0x%x (0x%x) (%x)\n", v_counter, (v_counter + cycles/MCYCLES_PER_LINE)%lines_per_frame, cycles + mcycles_vdp, cycles%MCYCLES_PER_LINE, temp, status, m68k_get_reg(M68K_REG_PC));
 #endif
+
+#ifdef VDP_DEBUG
+	static char error_str[512];
+	sprintf(error_str, "[%d(%d)][%d(%d)] VDP 68k status read -> 0x%x (0x%x) (%x)\n", v_counter, (v_counter + cycles/MCYCLES_PER_LINE)%lines_per_frame, cycles + mcycles_vdp, cycles%MCYCLES_PER_LINE, temp, status, m68k_get_reg(M68K_REG_PC));
+	log_cb(RETRO_LOG_ERROR, error_str);
+#endif
+
   return (temp);
 }
 
@@ -1398,6 +1480,7 @@ unsigned int vdp_z80_ctrl_r(unsigned int cycles)
 #ifdef LOGVDP
   error("[%d(%d)][%d(%d)] VDP Z80 status read -> 0x%x (0x%x) (%x)\n", v_counter, (v_counter + (cycles - mcycles_vdp)/MCYCLES_PER_LINE)%lines_per_frame, cycles, cycles%MCYCLES_PER_LINE, temp, status, Z80.pc.w.l);
 #endif
+
   return (temp);
 }
 
@@ -1535,6 +1618,12 @@ static void vdp_reg_w(unsigned int r, unsigned int d, unsigned int cycles)
 {
 #ifdef LOGVDP
   error("[%d(%d)][%d(%d)] VDP register %d write -> 0x%x (%x)\n", v_counter, (v_counter + (cycles - mcycles_vdp)/MCYCLES_PER_LINE)%lines_per_frame, cycles, cycles%MCYCLES_PER_LINE, r, d, m68k_get_reg(M68K_REG_PC));
+#endif
+
+#ifdef DEBUG_VDP
+	static char error_str[512];
+	sprintf(error_str, "[%d(%d)][%d(%d)] VDP register %d write -> 0x%x (%x)\n", v_counter, (v_counter + (cycles - mcycles_vdp)/MCYCLES_PER_LINE)%lines_per_frame, cycles, cycles%MCYCLES_PER_LINE, r, d, m68k_get_reg(M68K_REG_PC));
+	log_cb(RETRO_LOG_ERROR, error_str);
 #endif
 
   /* VDP registers #11 to #23 cannot be updated in Mode 4 (Captain Planet & Avengers, Bass Master Classic Pro Edition) */
@@ -2160,6 +2249,35 @@ static void vdp_bus_w(unsigned int data)
   /* increment FIFO write pointer */
   fifo_idx = (fifo_idx + 1) & 3;
 
+
+	if( debug_dma == 1 ) {
+		int test = ((reg[23] & 0x7f) << 16) + reg[21] + (reg[22] << 8);
+		test *= 2;
+
+		debug_dma_once = 1;
+		debug_dma = 2;
+
+#ifdef DEBUG_DMA
+		sprintf(error_str, "[%d] DMA %02X:%04X ==>", v_counter, (test>>16) & 0xff, test & 0xffff);
+
+		if( code & 0x04 ) {
+			sprintf(error_str, "%s VSRAM", error_str);
+		}
+		else if( code & 0x02 ) {
+			sprintf(error_str, "%s CRAM", error_str);
+		}
+		else {
+			sprintf(error_str, "%s VRAM", error_str);
+		}
+
+		sprintf(error_str, "%s %04X @ %04X len\n", error_str, addr, (reg[19] + (reg[20] << 8)) * 2);
+		log_cb(RETRO_LOG_ERROR, error_str);
+#endif
+
+		//if(addr == 0xc800) memset(vram + 0xc000, 0xAA, 0x400);
+	}
+
+
   /* Check destination code (CD0-CD3) */
   switch (code & 0x0F)
   {
@@ -2204,6 +2322,19 @@ static void vdp_bus_w(unsigned int data)
 #ifdef LOGVDP
       error("[%d(%d)][%d(%d)] VRAM 0x%x write -> 0x%x (%x)\n", v_counter, (v_counter + (m68k.cycles - mcycles_vdp)/MCYCLES_PER_LINE)%lines_per_frame, m68k.cycles, m68k.cycles%MCYCLES_PER_LINE, addr, data, m68k_get_reg(M68K_REG_PC));
 #endif
+
+#ifdef DEBUG_VDP
+		{
+			static int once = 0;
+			if (data != 0) once = 1;
+			if (!debug_dma && debug_dma_once && once) {
+			//if (once) {
+				sprintf(error_str, "[%d(%d)][%d(%d)] VRAM 0x%x write -> 0x%x (%x)\n", v_counter, (v_counter + (m68k.cycles - mcycles_vdp)/MCYCLES_PER_LINE)%lines_per_frame, m68k.cycles, m68k.cycles%MCYCLES_PER_LINE, addr, data, m68k_get_reg(M68K_REG_PC));
+				log_cb(RETRO_LOG_ERROR, error_str);
+			}
+		}
+#endif
+
       break;
     }
 
@@ -2253,6 +2384,17 @@ static void vdp_bus_w(unsigned int data)
 #ifdef LOGVDP
       error("[%d(%d)][%d(%d)] CRAM 0x%x write -> 0x%x (%x)\n", v_counter, (v_counter + (m68k.cycles - mcycles_vdp)/MCYCLES_PER_LINE)%lines_per_frame, m68k.cycles, m68k.cycles%MCYCLES_PER_LINE, addr, data, m68k_get_reg(M68K_REG_PC));
 #endif
+
+#ifdef DEBUG_VDP
+		{
+			static int once = 0;
+			if (data != 0) once = 1;
+			if (!debug_dma && debug_dma_once && once) {
+				sprintf(error_str, "[%d(%d)][%d(%d)] CRAM 0x%x write -> 0x%x (%x)\n", v_counter, (v_counter + (m68k.cycles - mcycles_vdp)/MCYCLES_PER_LINE)%lines_per_frame, m68k.cycles, m68k.cycles%MCYCLES_PER_LINE, addr, data, m68k_get_reg(M68K_REG_PC));
+				log_cb(RETRO_LOG_ERROR, error_str);
+			}
+		}
+#endif
       break;
     }
 
@@ -2279,6 +2421,17 @@ static void vdp_bus_w(unsigned int data)
 #ifdef LOGVDP
       error("[%d(%d)][%d(%d)] VSRAM 0x%x write -> 0x%x (%x)\n", v_counter, (v_counter + (m68k.cycles - mcycles_vdp)/MCYCLES_PER_LINE)%lines_per_frame, m68k.cycles, m68k.cycles%MCYCLES_PER_LINE, addr, data, m68k_get_reg(M68K_REG_PC));
 #endif
+
+#ifdef DEBUG_VDP
+		{
+			static int once = 0;
+			if (data != 0) once = 1;
+			if (!debug_dma && debug_dma_once && once) {
+				sprintf(error_str, "[%d(%d)][%d(%d)] VSRAM 0x%x write -> 0x%x (%x)\n", v_counter, (v_counter + (m68k.cycles - mcycles_vdp)/MCYCLES_PER_LINE)%lines_per_frame, m68k.cycles, m68k.cycles%MCYCLES_PER_LINE, addr, data, m68k_get_reg(M68K_REG_PC));
+				log_cb(RETRO_LOG_ERROR, error_str);
+			}
+		}
+#endif
       break;
     }
 
@@ -2287,6 +2440,10 @@ static void vdp_bus_w(unsigned int data)
 #ifdef LOGERROR
       error("[%d(%d)][%d(%d)] Invalid (%d) 0x%x write -> 0x%x (%x)\n", v_counter, (v_counter + (m68k.cycles - mcycles_vdp)/MCYCLES_PER_LINE)%lines_per_frame, m68k.cycles, m68k.cycles%MCYCLES_PER_LINE, code, addr, data, m68k_get_reg(M68K_REG_PC));
 #endif
+
+	sprintf(error_str, "[%d(%d)][%d(%d)] Invalid (%d) 0x%x write -> 0x%x (%x)\n", v_counter, (v_counter + (m68k.cycles - mcycles_vdp)/MCYCLES_PER_LINE)%lines_per_frame, m68k.cycles, m68k.cycles%MCYCLES_PER_LINE, code, addr, data, m68k_get_reg(M68K_REG_PC));
+	log_cb(RETRO_LOG_ERROR, error_str);
+
       break;
     }
   }
@@ -3014,6 +3171,8 @@ static void vdp_dma_68k_ext(unsigned int length)
   /* 68k bus source address */
   uint32 source = (reg[23] << 17) | (dma_src << 1);
 
+	if( debug_dma == 0 ) debug_dma = 1;
+
   do
   {
     /* Read data word from 68k bus */
@@ -3049,6 +3208,8 @@ static void vdp_dma_68k_ram(unsigned int length)
   /* 68k bus source address */
   uint32 source = (reg[23] << 17) | (dma_src << 1);
 
+	if( debug_dma == 0 ) debug_dma = 1;
+
   do
   {
     /* access Work-RAM by default  */
@@ -3076,6 +3237,8 @@ static void vdp_dma_68k_io(unsigned int length)
 
   /* 68k bus source address */
   uint32 source = (reg[23] << 17) | (dma_src << 1);
+
+	if( debug_dma == 0 ) debug_dma = 1;
 
   do
   {
@@ -3120,6 +3283,8 @@ static void vdp_dma_68k_io(unsigned int length)
 /*  VRAM Copy */
 static void vdp_dma_copy(unsigned int length)
 {
+	if( debug_dma == 0 ) debug_dma = 1;
+
   /* CD4 should be set (CD0-CD3 ignored) otherwise VDP locks (hard reset needed) */
   if (code & 0x10)
   {
@@ -3163,6 +3328,8 @@ static void vdp_dma_copy(unsigned int length)
 /* DMA Fill */
 static void vdp_dma_fill(unsigned int length)
 {
+	if( debug_dma == 0 ) debug_dma = 1;
+
   /* Check destination code (CD0-CD3) */
   switch (code & 0x0F)
   {

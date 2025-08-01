@@ -154,8 +154,8 @@
   /* We have to do this because the morons at ANSI decided that shifts
      * by >= data size are undefined.
      */
-  #define LSR_32(A, C) ((C) < 32 ? (A) >> (C) : 0)
-  #define LSL_32(A, C) ((C) < 32 ? (A) << (C) : 0)
+  #define LSR_32(A, C) (((C) < 32) ? (A) >> (C) : 0)
+  #define LSL_32(A, C) (((C) < 32) ? (A) << (C) : 0)
 #endif /* M68K_INT_GT_32_BIT */
 
 #if M68K_USE_64_BIT
