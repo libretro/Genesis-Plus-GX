@@ -73,13 +73,13 @@ Genesis Plus GX 1.7.5 (xx/xx/xxxx) (Eke-Eke)
 ---------------
 * added support for more Radica dumps
 * added support for more X-in-1 pirate mappers
-* added support for some new unlicensed games with copy protection (Thunderbolt II, Tom Clown, Chaoji Puke / Super Poker, Rock Heaven, Rock World)
+* added support for new unlicensed games with copy protection
 * added support for Everdrive extended SSF mapper
 * added support for MegaSD CD hardware overlay (MD+ hacks) and extended SSF2 / ROM write mappers
 * added emulation of Z80 halt when accessing 68k bus during DMA from 68k bus
 * added emulation of 68k delay during Z80 acccess to 68k bus
 * added (basic) emulation of 68k bus refresh delays (fixes Super Airwolf graphical glitch during intro & some Krikzz's mcd-verificator timing tests)
-* added (very basic) emulation of Flashkit MD hardware
+* added emulation of CFI-compliant flash memory hardware (used by some games for copy-protection and backup RAM support)
 * added emulation of Micro Machines USA on-board TMSS bypass logic hardware
 * added SRAM support for games larger than 8MB
 * improved console region auto-detection for a few PAL-only games (The Smurfs Travel the World & Williams Arcade's Greatest Hits)
@@ -135,6 +135,7 @@ Genesis Plus GX 1.7.5 (xx/xx/xxxx) (Eke-Eke)
 * fixed 68k timings of BCHG, BCLR, BTST Dn,#Imm and Dn,Dm instructions when bit number is less than 16 (cf. Yacht.txt)
 * fixed 68k timings of CHK, TRAP, TRAPV, LINEA and LINEF exceptions (cf. Yacht.txt)
 * fixed 68K DIVU instruction timings for SUB-CPU
+* fixed and enabled 68K prefetch for MAIN-CPU
 * fixed Z80 interrupt duration (Bomb on Basic City music running too fast)
 * fixed Z80 SP register initialization on power-on for Master System & Game Gear 
  (Ace of Aces, Shadow Dancer, Ecco the Dolphin, Evander Holyfield Real Deal Boxing)
@@ -172,7 +173,8 @@ Genesis Plus GX 1.7.5 (xx/xx/xxxx) (Eke-Eke)
 * improved accuracy of Master System color palette brightness range (verified against real hardware)
 * fixed misaligned buffer writes in Mode 4 when -DALIGN_LONG option is used
 * fixed alpha channel for 15-bit (RGB555) and 32-bit (RGB888) color support
-* fixed register #10 state on VDP¨reset (fixes GG Terminator 2: Judgment Day)
+* fixed register #10 state on VDP reset (fixes GG Terminator 2: Judgment Day)
+* fixed Game Gear VDP registers state on VDP reset (fixes The Terminator glitched Sega logo)
 * fixed Mode 1 rendering (TMS99xx "text" mode)
 * fixed Master System II extended video modes sprite parsing (fixes Mega Man 2 demo)
 * fixed Game Gear display rendering regression when left/right borders were disabled
@@ -228,6 +230,7 @@ Genesis Plus GX 1.7.5 (xx/xx/xxxx) (Eke-Eke)
 * improved progressive mode switch request on startup when component cable is detected
 * disabled simultaneous multiple .ogg files opening (fixes crashes caused to RAM size limitation)
 * fixed broken DVD support
+* added low-mem DOL version with dynamically allocated ROM buffer (fixes loading issues with Swiss or similar loaders using ARAM for temporary DOL storage)
 
 [Wii]
 ---------------
