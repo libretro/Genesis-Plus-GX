@@ -810,7 +810,13 @@ else
 endif
 
 ifeq ($(HAVE_CHD), 1)
-	DEFINES += -DUSE_LIBCHDR -DHAVE_LROUND -DHAVE_STDINT_H
+	DEFINES += -DUSE_LIBCHDR
+endif
+
+ifeq ($(HAVE_SYS_PARAM), 1)
+DEFINES += -DHAVE_SYS_PARAM_H
+else
+DEFINES += -Dflac_max=MAX -Dflac_min=MIN -Dfseeko=fseek -Dftello=ftell
 endif
 
 ifeq ($(USE_PER_SOUND_CHANNELS_CONFIG), 1)
