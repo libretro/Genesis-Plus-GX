@@ -64657,7 +64657,7 @@ struct retro_core_options_v2 options_val = {
 #define CATEGORY_SYSTEM_LABEL_VN "Hệ thống"
 #define CATEGORY_SYSTEM_INFO_0_VN NULL
 #define CATEGORY_VIDEO_LABEL_VN "Video Driver"
-#define CATEGORY_VIDEO_INFO_0_VN NULL
+#define CATEGORY_VIDEO_INFO_0_VN "Thay đổi tỷ lệ khung hình, cắt xén màn hình, bộ lọc video và cài đặt bỏ qua khung hình."
 #define CATEGORY_AUDIO_LABEL_VN "Âm thanh"
 #define CATEGORY_AUDIO_INFO_0_VN NULL
 #define CATEGORY_INPUT_LABEL_VN "Input Driver"
@@ -64765,7 +64765,7 @@ struct retro_core_options_v2 options_val = {
 #define GENESIS_PLUS_GX_SOUND_OUTPUT_INFO_0_VN NULL
 #define OPTION_VAL_STEREO_VN NULL
 #define OPTION_VAL_MONO_VN NULL
-#define GENESIS_PLUS_GX_AUDIO_FILTER_LABEL_VN "Âm thanh Filter Danh mục"
+#define GENESIS_PLUS_GX_AUDIO_FILTER_LABEL_VN "Bộ lọc âm thanh"
 #define GENESIS_PLUS_GX_AUDIO_FILTER_INFO_0_VN NULL
 #define OPTION_VAL_LOW_PASS_VN NULL
 #define OPTION_VAL_EQ_VN NULL
@@ -64788,7 +64788,7 @@ struct retro_core_options_v2 options_val = {
 #define GENESIS_PLUS_GX_GUN_INPUT_LABEL_VN NULL
 #define GENESIS_PLUS_GX_GUN_INPUT_INFO_0_VN NULL
 #define OPTION_VAL_LIGHTGUN_VN NULL
-#define OPTION_VAL_TOUCHSCREEN_VN NULL
+#define OPTION_VAL_TOUCHSCREEN_VN "Màn hình cảm ứng"
 #define GENESIS_PLUS_GX_GUN_CURSOR_LABEL_VN NULL
 #define GENESIS_PLUS_GX_GUN_CURSOR_INFO_0_VN NULL
 #define GENESIS_PLUS_GX_INVERT_MOUSE_LABEL_VN NULL
