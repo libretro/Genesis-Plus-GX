@@ -80,6 +80,7 @@ Genesis Plus GX 1.7.5 (xx/xx/xxxx) (Eke-Eke)
 * added emulation of 68k delay during Z80 acccess to 68k bus
 * added (basic) emulation of 68k bus refresh delays (fixes Super Airwolf graphical glitch during intro & some Krikzz's mcd-verificator timing tests)
 * added emulation of CFI-compliant flash memory hardware (used by some games for copy-protection and backup RAM support)
+* added emulation of YX5200 MP3 player (used by "The Secret of the Four Wings")
 * added emulation of Micro Machines USA on-board TMSS bypass logic hardware
 * added SRAM support for games larger than 8MB
 * improved console region auto-detection for a few PAL-only games (The Smurfs Travel the World & Williams Arcade's Greatest Hits)
@@ -90,6 +91,7 @@ Genesis Plus GX 1.7.5 (xx/xx/xxxx) (Eke-Eke)
 * fixed Realtec mapper behavior on soft-reset and with TMSS hardware
 * fixed Game Genie / Pro Action Replay lock-on support when Mega CD hardware is enabled 
 * fixed Game Genie / Pro Action Replay lock-on support with games larger than 8MB
+* fixed Game Genie hardware emulation when codes are modified after a soft reset
 * fixed SRAM support in Barkley Shut Up and Jam 2, Triple Play 96 & Triple Play - Gold Edition
 * fixed automatic CD loading with .md ROM files
 * fixed ROM padding for Sonic & Knuckles
@@ -157,19 +159,23 @@ Genesis Plus GX 1.7.5 (xx/xx/xxxx) (Eke-Eke)
 [Core/VDP]
 ---------------
 * added support for background color changes during HBLANK when display is disabled (fixes incorrect colored line in Yuu Yuu Hakusho)
+* added support for sprites attribute table address change during HBLANK and improved Mode 4 8x16 sprites parsing accuracy (fixes graphics glitch in Madoh Monogatari I cutscreen)
 * added optional enhanced 2-cell vertical scroll rendering mode (credits to AlexKiri)
-* implemented proper FIFO ring-buffer & unused bits behavior on CRAM/VSRAM reads (verified on real hardware by Nemesis)
-* improved accuracy of DMA Copy/Fill & added support for CRAM/VSRAM Fill (verified on real hardware by Nemesis)
+* implemented proper FIFO ring-buffer & unused bits behavior on CRAM/VSRAM reads (verified on real hardware)
+* implemented 315-5124 VDP registers #3 and #4 masking behavior in Mode 4
+* implemented proper Mode 4 / Mode 5 VRAM address switching
+* improved accuracy of DMA Copy/Fill & added support for CRAM/VSRAM Fill (verified on real hardware)
 * improved V28/V30 mode switching during active display (verified on real hardware)
+* improved interlaced mode 2 vertical scrolling accuracy (verified on real hardware)
 * improved Mode 5 sprites parsing accuracy (verified on real hardware)
 * improved Mode 5 sprites rendering timings (fixes "Overdrive" demo)
 * improved FIFO timings accuracy (fixes "Overdrive" Demo)
 * improved FIFO emulation (fixes potential lockup when switching between H32 & H40 mode during active display)
 * improved H-Counter accuracy in H32 mode
 * improved VDP status timing accuracy
-* improved HBLANK flag timing accuracy (verified on real hardware by Nemesis)
-* improved VINT timing accuracy in H32 mode (verified on real hardware by Nemesis)
-* improved DMA timing accuracy during blanking (verified on real hardware by Mask of Destiny)
+* improved HBLANK flag timing accuracy (verified on real hardware)
+* improved VINT timing accuracy in H32 mode (verified on real hardware)
+* improved DMA timing accuracy during blanking (verified on real hardware)
 * improved accuracy of Master System color palette brightness range (verified against real hardware)
 * fixed misaligned buffer writes in Mode 4 when -DALIGN_LONG option is used
 * fixed alpha channel for 15-bit (RGB555) and 32-bit (RGB888) color support
@@ -178,7 +184,8 @@ Genesis Plus GX 1.7.5 (xx/xx/xxxx) (Eke-Eke)
 * fixed Mode 1 rendering (TMS99xx "text" mode)
 * fixed Master System II extended video modes sprite parsing (fixes Mega Man 2 demo)
 * fixed Game Gear display rendering regression when left/right borders were disabled
-* fixed address/code potential corruption by one-instruction execution delay after HV interrupts activation (fixes Pugsy's Pyramids stage boss) 
+* fixed 315-5124 VDP zoomed sprites rendering (verified on real hardware)
+* fixed address/code potential corruption by one-instruction execution delay after HV interrupts activation (fixes Pugsy's Pyramids stage boss)
 * optimized tile caching
 * reverted FIFO access timings hack when using invalid write code value
 

@@ -4,8 +4,8 @@
  *
  *  Support for all TMS99xx modes, Mode 4 & Mode 5 rendering
  *
- *  Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003  Charles Mac Donald (original code)
- *  Copyright (C) 2007-2016  Eke-Eke (Genesis Plus GX)
+ *  Copyright (C) 1998-2003  Charles Mac Donald (original code)
+ *  Copyright (C) 2007-2025  Eke-Eke (Genesis Plus GX)
  *  Copyright (C) 2022  AlexKiri (enhanced vscroll mode rendering function)
  *
  *  Redistribution and use of this code or any derivative works are permitted
@@ -131,6 +131,7 @@ extern void render_obj_m5_im2_ste(int line);
 extern void parse_satb_tms(int line);
 extern void parse_satb_m4(int line);
 extern void parse_satb_m5(int line);
+extern void parse_satb_m5_im2(int line);
 extern void update_bg_pattern_cache_m4(int index);
 extern void update_bg_pattern_cache_m5(int index);
 extern void color_update_m4(int index, unsigned int data);

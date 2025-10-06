@@ -5,7 +5,7 @@
  *  Support for 16-bit & 8-bit hardware modes
  *
  *  Copyright (C) 1998-2003  Charles Mac Donald (original code)
- *  Copyright (C) 2007-2024  Eke-Eke (Genesis Plus GX)
+ *  Copyright (C) 2007-2025  Eke-Eke (Genesis Plus GX)
  *
  *  Redistribution and use of this code or any derivative works are permitted
  *  provided that the following conditions are met:
@@ -40,6 +40,7 @@
  ****************************************************************************************/
 
 #include "shared.h"
+#include "yx5200.h"
 #include "eq.h"
 
 extern int8 audio_hard_disable;
@@ -138,11 +139,18 @@ void audio_set_rate(int samplerate, double framerate)
     /* number of SCD master clocks run per second */
     mclk = (mclk / system_clock) * SCD_CLOCK;
 
-    /* PCM core */
+    /* initialize PCM audio */
     pcm_init(mclk, samplerate);
 
-    /* CDD core */
+    /* initialize CD-DA audio */
     cdd_init(samplerate);
+  }
+
+  /* Cartridge sound hardware enabled ? */
+  if (snd.blips[3])
+  {
+    /* initialize YX5200 audio */
+    yx5200_init(samplerate);
   }
 
   /* Reinitialize internal rates */
@@ -155,7 +163,7 @@ void audio_reset(void)
   int i;
   
   /* Clear blip buffers */
-  for (i=0; i<3; i++)
+  for (i=0; i<4; i++)
   {
     if (snd.blips[i])
     {
@@ -185,7 +193,7 @@ void audio_shutdown(void)
   int i;
   
   /* Delete blip buffers */
-  for (i=0; i<3; i++)
+  for (i=0; i<4; i++)
   {
     blip_delete(snd.blips[i]);
     snd.blips[i] = 0;
@@ -196,7 +204,10 @@ void audio_shutdown(void)
 
 int audio_update(int16 *buffer)
 {
-  /* run sound chips until end of frame */
+  /* number of audio streams to mix with FM+PSG stream (none by default) */
+  int mixed_blips = 0;
+
+  /* run FM & PSG sound chips until end of frame */
   int size = sound_update(mcycles_vdp);
 
   /* Mega CD sound hardware enabled ? */
@@ -208,35 +219,33 @@ int audio_update(int16 *buffer)
     /* read CD-DA samples */
     cdd_update_audio(size);
 
+    /* add PCM & CD-DA streams for audio mixing */
+    mixed_blips += 2;
+  }
+
+  /* Cartridge sound hardware enabled ? */
+  if (snd.blips[3])
+  {
+    /* read YX5200 audio samples */
+    yx5200_update(size);
+
+    /* add cartridge audio stream for audio mixing */
+    mixed_blips++;
+  }
+
 #ifdef ALIGN_SND
-    /* return an aligned number of samples if required */
-    size &= ALIGN_SND;
+  /* return an aligned number of samples if required */
+  size &= ALIGN_SND;
 #endif
 
-    if (audio_hard_disable)
-    {
-      blip_discard_samples_dirty(snd.blips[0], size);
-      blip_discard_samples_dirty(snd.blips[1], size);
-      blip_discard_samples_dirty(snd.blips[2], size);
-      return 0;
-    }
-
-    /* resample & mix FM/PSG, PCM & CD-DA streams to output buffer */
-    blip_mix_samples(snd.blips[0], snd.blips[1], snd.blips[2], buffer, size);
+  /* check number of audio streams to mix with FM+PSG stream */
+  if (mixed_blips)
+  {
+    /* resample & mix all audio streams to output buffer */
+    blip_mix_samples(snd.blips[0], (mixed_blips > 1) ? &snd.blips[1] : &snd.blips[3], mixed_blips, buffer, size);
   }
   else
   {
-#ifdef ALIGN_SND
-    /* return an aligned number of samples if required */
-    size &= ALIGN_SND;
-#endif
-
-    if (audio_hard_disable)
-    {
-      blip_discard_samples_dirty(snd.blips[0], size);
-      return 0;
-    }
-
     /* resample FM/PSG mixed stream to output buffer */
     blip_read_samples(snd.blips[0], buffer, size);
   }
@@ -375,16 +384,18 @@ void system_frame_gen(int do_skip)
       /* video mode has changed */
       bitmap.viewport.changed = 5;
 
-      /* update rendering mode */
+      /* update rendering mode (Mode 5 only) */
       if (reg[1] & 0x04)
       {
         if (im2_flag)
         {
+          parse_satb = parse_satb_m5_im2;
           render_bg = (reg[11] & 0x04) ? render_bg_m5_im2_vs : render_bg_m5_im2;
           render_obj = (reg[12] & 0x08) ? render_obj_m5_im2_ste : render_obj_m5_im2;
         }
         else
         {
+          parse_satb = parse_satb_m5;
           render_bg = (reg[11] & 0x04) ? render_bg_m5_vs : render_bg_m5;
           render_obj = (reg[12] & 0x08) ? render_obj_m5_ste : render_obj_m5;
         }
@@ -718,16 +729,18 @@ void system_frame_scd(int do_skip)
       /* video mode has changed */
       bitmap.viewport.changed = 5;
 
-      /* update rendering mode */
+      /* update rendering mode (Mode 5 only) */
       if (reg[1] & 0x04)
       {
         if (im2_flag)
         {
+          parse_satb = parse_satb_m5_im2;
           render_bg = (reg[11] & 0x04) ? render_bg_m5_im2_vs : render_bg_m5_im2;
           render_obj = (reg[12] & 0x08) ? render_obj_m5_im2_ste : render_obj_m5_im2;
         }
         else
         {
+          parse_satb = parse_satb_m5;
           render_bg = (reg[11] & 0x04) ? render_bg_m5_vs : render_bg_m5;
           render_obj = (reg[12] & 0x08) ? render_obj_m5_ste : render_obj_m5;
         }
@@ -1049,16 +1062,18 @@ void system_frame_sms(int do_skip)
         /* video mode has changed */
         bitmap.viewport.changed = 5;
 
-        /* update rendering mode */
+        /* update rendering mode (Mode 5 only) */
         if (reg[1] & 0x04)
         {
           if (im2_flag)
           {
+            parse_satb = parse_satb_m5_im2;
             render_bg = (reg[11] & 0x04) ? render_bg_m5_im2_vs : render_bg_m5_im2;
             render_obj = (reg[12] & 0x08) ? render_obj_m5_im2_ste : render_obj_m5_im2;
           }
           else
           {
+            parse_satb = parse_satb_m5;
             render_bg = (reg[11] & 0x04) ? render_bg_m5_vs : render_bg_m5;
             render_obj = (reg[12] & 0x08) ? render_obj_m5_ste : render_obj_m5;
           }
