@@ -354,10 +354,11 @@ int mp3dec_load_cb(mp3dec_t *dec, mp3dec_io_t *io, uint8_t *buf, size_t buf_size
         {
             if (!eof && filled - consumed < MINIMP3_BUF_SIZE)
             {   /* keep minimum 10 consecutive mp3 frames (~16KB) worst case */
+                size_t readed;
                 memmove(buf, buf + consumed, filled - consumed);
                 filled -= consumed;
                 consumed = 0;
-                size_t readed = io->read(buf + filled, buf_size - filled, io->read_data);
+                readed = io->read(buf + filled, buf_size - filled, io->read_data);
                 if (readed > (buf_size - filled))
                     return MP3D_E_IOERROR;
                 if (readed != (buf_size - filled))
@@ -431,8 +432,9 @@ int mp3dec_load_cb(mp3dec_t *dec, mp3dec_io_t *io, uint8_t *buf, size_t buf_size
     {
         if ((allocated - info->samples*sizeof(mp3d_sample_t)) < MINIMP3_MAX_SAMPLES_PER_FRAME*sizeof(mp3d_sample_t))
         {
+            mp3d_sample_t *alloc_buf;
             allocated *= 2;
-            mp3d_sample_t *alloc_buf = (mp3d_sample_t*)realloc(info->buffer, allocated);
+            alloc_buf = (mp3d_sample_t*)realloc(info->buffer, allocated);
             if (!alloc_buf)
                 return MP3D_E_MEMORY;
             info->buffer = alloc_buf;
@@ -441,10 +443,11 @@ int mp3dec_load_cb(mp3dec_t *dec, mp3dec_io_t *io, uint8_t *buf, size_t buf_size
         {
             if (!eof && filled - consumed < MINIMP3_BUF_SIZE)
             {   /* keep minimum 10 consecutive mp3 frames (~16KB) worst case */
+                size_t readed;
                 memmove(buf, buf + consumed, filled - consumed);
                 filled -= consumed;
                 consumed = 0;
-                size_t readed = io->read(buf + filled, buf_size - filled, io->read_data);
+                readed = io->read(buf + filled, buf_size - filled, io->read_data);
                 if (readed != (buf_size - filled))
                     eof = 1;
                 filled += readed;
@@ -511,6 +514,7 @@ int mp3dec_load_cb(mp3dec_t *dec, mp3dec_io_t *io, uint8_t *buf, size_t buf_size
 
 int mp3dec_iterate_buf(const uint8_t *buf, size_t buf_size, MP3D_ITERATE_CB callback, void *user_data)
 {
+    mp3dec_frame_info_t frame_info;
     const uint8_t *orig_buf = buf;
     if (!buf || (size_t)-1 == buf_size || !callback)
         return MP3D_E_PARAM;
@@ -518,7 +522,6 @@ int mp3dec_iterate_buf(const uint8_t *buf, size_t buf_size, MP3D_ITERATE_CB call
     mp3dec_skip_id3(&buf, &buf_size);
     if (!buf_size)
         return 0;
-    mp3dec_frame_info_t frame_info;
     memset(&frame_info, 0, sizeof(frame_info));
     do
     {
@@ -666,11 +669,12 @@ static int mp3dec_load_index(void *user_data, const uint8_t *frame, int frame_si
         return MP3D_E_USER;
     if (dec->index.num_frames + 1 > dec->index.capacity)
     {
+        mp3dec_frame_t *alloc_buf;
         if (!dec->index.capacity)
             dec->index.capacity = 4096;
         else
             dec->index.capacity *= 2;
-        mp3dec_frame_t *alloc_buf = (mp3dec_frame_t *)realloc((void*)dec->index.frames, sizeof(mp3dec_frame_t)*dec->index.capacity);
+        alloc_buf = (mp3dec_frame_t *)realloc((void*)dec->index.frames, sizeof(mp3dec_frame_t)*dec->index.capacity);
         if (!alloc_buf)
             return MP3D_E_MEMORY;
         dec->index.frames = alloc_buf;
@@ -975,13 +979,14 @@ return_e_decode:
 size_t mp3dec_ex_read(mp3dec_ex_t *dec, mp3d_sample_t *buf, size_t samples)
 {
     size_t samples_requested = samples;
+    mp3dec_frame_info_t frame_info;
+
     if (!dec || !buf)
     {
         if (dec)
             dec->last_error = MP3D_E_PARAM;
         return 0;
     }
-    mp3dec_frame_info_t frame_info;
     memset(&frame_info, 0, sizeof(frame_info));
     while (samples)
     {
