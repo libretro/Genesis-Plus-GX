@@ -94,10 +94,9 @@ int mp3dec_decode_frame(mp3dec_t *dec, const uint8_t *mp3, int mp3_bytes, mp3d_s
 #if (defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_X64))) || ((defined(__i386__) || defined(__x86_64__)) && defined(__SSE2__))
 #if defined(_MSC_VER)
 #include <intrin.h>
-#endif /* defined(_MSC_VER) */
-#if defined(__AVX2__)
+#else
 #include <immintrin.h>
-#endif
+#endif /* defined(_MSC_VER) */
 #define HAVE_SSE 1
 #define HAVE_SIMD 1
 #define VSTORE _mm_storeu_ps
