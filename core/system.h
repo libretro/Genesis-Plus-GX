@@ -5,7 +5,7 @@
  *  Support for 16-bit & 8-bit hardware modes
  *
  *  Copyright (C) 1998-2003  Charles Mac Donald (original code)
- *  Copyright (C) 2007-2024  Eke-Eke (Genesis Plus GX)
+ *  Copyright (C) 2007-2025  Eke-Eke (Genesis Plus GX)
  *
  *  Redistribution and use of this code or any derivative works are permitted
  *  provided that the following conditions are met:
@@ -92,8 +92,8 @@ typedef struct
   int sample_rate;      /* Output Sample rate (8000-48000) */
   double frame_rate;    /* Output Frame rate (usually 50 or 60 frames per second) */
   int enabled;          /* 1= sound emulation is enabled */
-  blip_t* blips[3];     /* Blip Buffer resampling (stereo) */
-  blip_buffer_state_t *blip_states[3]; /* states for suspending and restoring the sound buffer */
+  blip_t* blips[4];     /* Blip Buffer resampling (stereo) */
+  blip_buffer_state_t *blip_states[4]; /* states for suspending and restoring the sound buffer */
   int fm_last_save[2];  /* For saving and restoring the sound buffer */
   int16 cd_last_save[2];  /* For saving and restoring the sound buffer */
 } t_snd;
