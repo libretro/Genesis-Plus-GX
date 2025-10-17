@@ -64660,7 +64660,7 @@ struct retro_core_options_v2 options_val = {
 #define CATEGORY_VIDEO_INFO_0_VN "Thay đổi tỷ lệ khung hình, cắt xén màn hình, bộ lọc video và cài đặt bỏ qua khung hình."
 #define CATEGORY_AUDIO_LABEL_VN "Âm thanh"
 #define CATEGORY_AUDIO_INFO_0_VN "Thay đổi cài đặt thiết bị âm thanh."
-#define CATEGORY_INPUT_LABEL_VN "Đầu vào"
+#define CATEGORY_INPUT_LABEL_VN "Đều khiển"
 #define CATEGORY_INPUT_INFO_0_VN "Thay đổi cài đặt nhập liệu súng ánh sáng và/hoặc chuột."
 #define CATEGORY_HACKS_LABEL_VN "Hacks giả lập"
 #define CATEGORY_HACKS_INFO_0_VN "Thay đổi cài đặt ép xung bộ xử lý và độ chính xác giả lập ảnh hưởng đến hiệu năng cấp thấp và khả năng tương thích."
