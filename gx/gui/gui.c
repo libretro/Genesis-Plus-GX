@@ -3,7 +3,7 @@
  *
  *  generic GUI Engine (using GX rendering)
  *
- *  Copyright Eke-Eke (2009-2021)
+ *  Copyright Eke-Eke (2009-2025)
  *
  *  Redistribution and use of this code or any derivative works are permitted
  *  provided that the following conditions are met:
@@ -791,7 +791,7 @@ int GUI_UpdateMenu(gui_menu *menu)
       if (button->state & BUTTON_OVER_SFX)
       {
         ASND_SetVoice(ASND_GetFirstUnusedVoice(),VOICE_MONO_16BIT,22050,0,(u8 *)button_over_pcm,button_over_pcm_size,
-                      ((int)config.sfx_volume * 255) / 100,((int)config.sfx_volume * 255) / 100,NULL);
+                      ((int)config.sfx_volume * MAX_VOLUME) / 100,((int)config.sfx_volume * MAX_VOLUME) / 100,NULL);
       }
     }
     else if (selected < (max_buttons + 2))
@@ -801,7 +801,7 @@ int GUI_UpdateMenu(gui_menu *menu)
       if (button->state & BUTTON_OVER_SFX)
       {
         ASND_SetVoice(ASND_GetFirstUnusedVoice(),VOICE_MONO_16BIT,22050,0,(u8 *)button_over_pcm,button_over_pcm_size,
-                      ((int)config.sfx_volume * 255) / 100,((int)config.sfx_volume * 255) / 100,NULL);
+                      ((int)config.sfx_volume * MAX_VOLUME) / 100,((int)config.sfx_volume * MAX_VOLUME) / 100,NULL);
       }
     }
 
@@ -832,7 +832,7 @@ int GUI_UpdateMenu(gui_menu *menu)
       if (button->state & BUTTON_SELECT_SFX)
       {
         ASND_SetVoice(ASND_GetFirstUnusedVoice(),VOICE_MONO_16BIT,22050,0,(u8 *)button_select_pcm,button_select_pcm_size,
-                      ((int)config.sfx_volume * 255) / 100,((int)config.sfx_volume * 255) / 100,NULL);
+                      ((int)config.sfx_volume * MAX_VOLUME) / 100,((int)config.sfx_volume * MAX_VOLUME) / 100,NULL);
       }
     }
   }
@@ -1183,7 +1183,7 @@ int GUI_OptionWindow(gui_menu *parent, char *title, char *infos, char *items[], 
       if (selected >= 0)
       {
         ASND_SetVoice(ASND_GetFirstUnusedVoice(),VOICE_MONO_16BIT,22050,0,(u8 *)button_over_pcm,button_over_pcm_size,
-                      ((int)config.sfx_volume * 255) / 100,((int)config.sfx_volume * 255) / 100,NULL);
+                      ((int)config.sfx_volume * MAX_VOLUME) / 100,((int)config.sfx_volume * MAX_VOLUME) / 100,NULL);
       }
     }
 
@@ -1455,7 +1455,7 @@ void GUI_OptionBox(gui_menu *parent, optioncallback cb, char *title, void *optio
 
       /* play sound effect */
       ASND_SetVoice(ASND_GetFirstUnusedVoice(),VOICE_MONO_16BIT,22050,0,(u8 *)button_over_pcm,button_over_pcm_size,
-                    ((int)config.sfx_volume * 255) / 100,((int)config.sfx_volume * 255) / 100,NULL);
+                    ((int)config.sfx_volume * MAX_VOLUME) / 100,((int)config.sfx_volume * MAX_VOLUME) / 100,NULL);
 
       /* option callback */
       if (cb)
@@ -1700,7 +1700,7 @@ void GUI_OptionBox2(gui_menu *parent, char *text_1, char *text_2, s16 *option_1,
       modified = 0;
       /* play sound effect */
       ASND_SetVoice(ASND_GetFirstUnusedVoice(),VOICE_MONO_16BIT,22050,0,(u8 *)button_over_pcm,button_over_pcm_size,
-                    ((int)config.sfx_volume * 255) / 100,((int)config.sfx_volume * 255) / 100,NULL);
+                    ((int)config.sfx_volume * MAX_VOLUME) / 100,((int)config.sfx_volume * MAX_VOLUME) / 100,NULL);
     }
   }
 
@@ -1758,12 +1758,10 @@ static void *MsgBox_Thread(gui_message *message_box)
     gxDrawTexture(message_box->top,166,160,message_box->top->width,message_box->top->height,255);
 
     /* draw title */
-    if (message_box->title)
-      FONT_writeCenter(message_box->title,20,166,166+message_box->window->width,160+(message_box->top->height-20)/2+20,(GXColor)WHITE);
+    FONT_writeCenter(message_box->title,20,166,166+message_box->window->width,160+(message_box->top->height-20)/2+20,(GXColor)WHITE);
 
     /* draw box message */
-    if (message_box->msg)
-      FONT_writeCenter(message_box->msg,18,166,166+message_box->window->width,248,(GXColor)WHITE);
+    FONT_writeCenter(message_box->msg,18,166,166+message_box->window->width,248,(GXColor)WHITE);
 
     /* draw throbber */
     if (message_box->throbber)
@@ -1911,12 +1909,10 @@ void GUI_MsgBoxClose(void)
       gxDrawTexture(message_box.top,xwindow,ywindow-yoffset,message_box.top->width,message_box.top->height,255);
 
       /* draw title */
-      if (message_box.title)
-        FONT_writeCenter(message_box.title,20,xwindow,xwindow+message_box.window->width,ywindow+(message_box.top->height-20)/2+20-yoffset,(GXColor)WHITE);
+      FONT_writeCenter(message_box.title,20,xwindow,xwindow+message_box.window->width,ywindow+(message_box.top->height-20)/2+20-yoffset,(GXColor)WHITE);
 
       /* draw text */
-      if (message_box.msg)
-        FONT_writeCenter(message_box.msg,18,xwindow,xwindow+message_box.window->width,ypos-yoffset,(GXColor)WHITE);
+      FONT_writeCenter(message_box.msg,18,xwindow,xwindow+message_box.window->width,ypos-yoffset,(GXColor)WHITE);
 
       /* update display */
       gxSetScreen();
