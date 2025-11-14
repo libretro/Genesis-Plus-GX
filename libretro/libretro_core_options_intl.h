@@ -7919,152 +7919,152 @@ struct retro_core_options_v2 options_ca = {
 /* RETRO_LANGUAGE_CHS */
 
 #define CATEGORY_SYSTEM_LABEL_CHS "系统"
-#define CATEGORY_SYSTEM_INFO_0_CHS "更改基础硬件选择、区域、BIOS 和 Sega CD/Mega-CD 保存文件设置。"
+#define CATEGORY_SYSTEM_INFO_0_CHS "更改基础硬件选择、区域、BIOS 以及 Sega CD/Mega-CD 存档文件设置。"
 #define CATEGORY_VIDEO_LABEL_CHS "视频"
-#define CATEGORY_VIDEO_INFO_0_CHS "更改长宽比、显示裁剪、视频过滤和帧跳过设置。"
+#define CATEGORY_VIDEO_INFO_0_CHS "更改宽高比、显示裁剪、视频滤镜和帧跳过设置。"
 #define CATEGORY_AUDIO_LABEL_CHS "音频"
 #define CATEGORY_AUDIO_INFO_0_CHS "更改音频设备设置。"
 #define CATEGORY_INPUT_LABEL_CHS "输入"
-#define CATEGORY_INPUT_INFO_0_CHS "更改光枪/鼠标输入设置。"
-#define CATEGORY_HACKS_LABEL_CHS "模拟修改"
-#define CATEGORY_HACKS_INFO_0_CHS NULL
-#define CATEGORY_CHANNEL_VOLUME_LABEL_CHS "高级频道音量设置"
-#define CATEGORY_CHANNEL_VOLUME_INFO_0_CHS "更改单个硬件音频频道的音量。"
+#define CATEGORY_INPUT_INFO_0_CHS "更改光枪和/或鼠标输入设置。"
+#define CATEGORY_HACKS_LABEL_CHS "模拟破解"
+#define CATEGORY_HACKS_INFO_0_CHS "更改影响底层性能和兼容性的处理器超频及模拟精度设置。"
+#define CATEGORY_CHANNEL_VOLUME_LABEL_CHS "高级声道音量设置"
+#define CATEGORY_CHANNEL_VOLUME_INFO_0_CHS "更改各个硬件音频声道的音量。"
 #define GENESIS_PLUS_GX_SYSTEM_HW_LABEL_CHS "系统硬件"
-#define GENESIS_PLUS_GX_SYSTEM_HW_INFO_0_CHS "用特定模拟控制台运行已加载的内容。'自动' 将选择当前游戏最合适的系统。"
+#define GENESIS_PLUS_GX_SYSTEM_HW_INFO_0_CHS "使用特定的模拟主机运行加载的内容。“自动”将为当前游戏选择最合适的系统。"
 #define OPTION_VAL_AUTO_CHS "自动"
 #define OPTION_VAL_SG_1000_CHS NULL
 #define OPTION_VAL_SG_1000_II_CHS NULL
-#define OPTION_VAL_SG_1000_II_RAM_EXT_CHS NULL
+#define OPTION_VAL_SG_1000_II_RAM_EXT_CHS "SG-1000 II + 内存扩展"
 #define OPTION_VAL_MARK_III_CHS NULL
 #define OPTION_VAL_MASTER_SYSTEM_CHS NULL
 #define OPTION_VAL_MASTER_SYSTEM_II_CHS NULL
 #define OPTION_VAL_GAME_GEAR_CHS NULL
 #define OPTION_VAL_MEGA_DRIVE_GENESIS_CHS NULL
 #define GENESIS_PLUS_GX_REGION_DETECT_LABEL_CHS "系统区域"
-#define GENESIS_PLUS_GX_REGION_DETECT_INFO_0_CHS "指定系统来自哪个区域。对于游戏手势以外的控制台，'PAL'为50赫兹，而'NTSC'为60赫兹。 如果选中不正确的区域，游戏可能会比正常更快或更慢。"
+#define GENESIS_PLUS_GX_REGION_DETECT_INFO_0_CHS "指定系统所属的区域。对于除 Game Gear 以外的主机，“PAL”是 50 Hz，而“NTSC”是 60 Hz。如果选择了错误的区域，游戏可能会运行得比正常更快或更慢。"
 #define OPTION_VAL_NTSC_U_CHS NULL
 #define OPTION_VAL_PAL_CHS NULL
 #define OPTION_VAL_NTSC_J_CHS NULL
-#define GENESIS_PLUS_GX_VDP_MODE_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_VDP_MODE_INFO_0_CHS NULL
-#define OPTION_VAL_60HZ_CHS NULL
-#define OPTION_VAL_50HZ_CHS NULL
+#define GENESIS_PLUS_GX_VDP_MODE_LABEL_CHS "强制 VDP 模式"
+#define GENESIS_PLUS_GX_VDP_MODE_INFO_0_CHS "覆盖 VDP 模式，强制其以 NTSC 60Hz 或 PAL 50Hz 运行，忽略系统区域。"
+#define OPTION_VAL_60HZ_CHS "NTSC（60Hz）"
+#define OPTION_VAL_50HZ_CHS "PAL（50Hz）"
 #define GENESIS_PLUS_GX_BIOS_LABEL_CHS "系统启动 ROM"
-#define GENESIS_PLUS_GX_BIOS_INFO_0_CHS "使用官方的 BIOS/bootloader 模拟硬件，如果存在于RetroArch的系统目录中。显示针对控制台的启动序列/动画，然后运行加载内容。"
-#define GENESIS_PLUS_GX_SYSTEM_BRAM_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_SYSTEM_BRAM_INFO_0_CHS NULL
-#define OPTION_VAL_PER_BIOS_CHS "双精度"
-#define OPTION_VAL_PER_GAME_CHS "每个游戏"
-#define GENESIS_PLUS_GX_CART_BRAM_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_CART_BRAM_INFO_0_CHS NULL
-#define OPTION_VAL_PER_CART_CHS NULL
-#define GENESIS_PLUS_GX_CART_SIZE_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_CART_SIZE_INFO_0_CHS NULL
-#define OPTION_VAL_128K_CHS NULL
-#define OPTION_VAL_256K_CHS NULL
-#define OPTION_VAL_512K_CHS NULL
-#define OPTION_VAL_1MEG_CHS NULL
-#define OPTION_VAL_2MEG_CHS NULL
-#define OPTION_VAL_4MEG_CHS NULL
-#define GENESIS_PLUS_GX_ADD_ON_LABEL_CHS "CD 附加组件 (MD 模式) (需要重启)"
-#define GENESIS_PLUS_GX_ADD_ON_INFO_0_CHS "指定支持的 Mega 驱动器/Genesis 游戏用于CD音频回放的附加组件。"
+#define GENESIS_PLUS_GX_BIOS_INFO_0_CHS "如果 RetroArch 系统目录中存在官方 BIOS/引导程序，则使用它来启动模拟硬件。会显示主机特有的启动序列/动画，然后运行加载的内容。"
+#define GENESIS_PLUS_GX_SYSTEM_BRAM_LABEL_CHS "CD 系统 BRAM（需重启）"
+#define GENESIS_PLUS_GX_SYSTEM_BRAM_INFO_0_CHS "在运行 Sega CD/Mega-CD 内容时，指定是否在来自特定区域的所有游戏中共享一个存档文件（按 BIOS），或为每个游戏创建单独的存档文件（按游戏）。请注意，Sega CD/Mega-CD 的内部存储空间有限，仅对少数游戏足够。为了避免空间不足，建议使用“按游戏”设置。"
+#define OPTION_VAL_PER_BIOS_CHS "按 BIOS"
+#define OPTION_VAL_PER_GAME_CHS "按游戏"
+#define GENESIS_PLUS_GX_CART_BRAM_LABEL_CHS "CD 备份卡 BRAM（需重启）"
+#define GENESIS_PLUS_GX_CART_BRAM_INFO_0_CHS "在运行 Sega CD/Mega-CD 内容时，指定是否在所有游戏中共享一个备份 RAM 卡（按卡），或为每个游戏创建单独的备份 RAM 卡（按游戏）。"
+#define OPTION_VAL_PER_CART_CHS "按卡"
+#define GENESIS_PLUS_GX_CART_SIZE_LABEL_CHS "CD 备份卡 BRAM 大小（需要重启）"
+#define GENESIS_PLUS_GX_CART_SIZE_INFO_0_CHS "设置运行 Sega CD/Mega-CD 内容时的备份 RAM 卡大小。当将备份 RAM 卡设置为“按游戏”时，此选项很有用，可以避免多个较大的卡尺寸。"
+#define OPTION_VAL_128K_CHS "128Kb"
+#define OPTION_VAL_256K_CHS "256Kb"
+#define OPTION_VAL_512K_CHS "512Kb"
+#define OPTION_VAL_1MEG_CHS "1Mb"
+#define OPTION_VAL_2MEG_CHS "2Mb"
+#define OPTION_VAL_4MEG_CHS "4Mb"
+#define GENESIS_PLUS_GX_ADD_ON_LABEL_CHS "CD 附加组件（MD 模式）（需重启）"
+#define GENESIS_PLUS_GX_ADD_ON_INFO_0_CHS "指定用于支持 Mega Drive/Genesis 游戏的 CD 音频播放的附加功能。"
 #define OPTION_VAL_SEGA_MEGA_CD_CHS NULL
 #define OPTION_VAL_MEGASD_CHS NULL
 #define OPTION_VAL_NONE_CHS "无"
-#define GENESIS_PLUS_GX_LOCK_ON_LABEL_CHS "卡片锁定"
-#define GENESIS_PLUS_GX_LOCK_ON_INFO_0_CHS "锁定技术是一个 Mega 驱动器/Genesis 功能，它允许旧游戏连接到特殊盒子的传递端口，用于延长或改变游戏。 此选项指定了要模拟的特殊的 '锁定' 墨盒类型。相应的 bios 文件必须存在于RetroArch的系统目录中。"
-#define OPTION_VAL_GAME_GENIE_CHS NULL
-#define OPTION_VAL_ACTION_REPLAY_PRO_CHS "回放(Pro)"
-#define OPTION_VAL_SONIC_KNUCKLES_CHS "音速&节拍"
+#define GENESIS_PLUS_GX_LOCK_ON_LABEL_CHS "卡带锁定功能"
+#define GENESIS_PLUS_GX_LOCK_ON_INFO_0_CHS "Lock-On 技术是 Mega Drive/Genesis 的一项功能，允许较老的游戏连接到特殊卡带的直通端口，以实现扩展或修改的游戏玩法。此选项指定要模拟哪种类型的特殊“锁定”卡带。RetroArch 的系统目录中必须存在相应的 BIOS 文件。"
+#define OPTION_VAL_GAME_GENIE_CHS "游戏类型"
+#define OPTION_VAL_ACTION_REPLAY_PRO_CHS "动作回放（Pro）"
+#define OPTION_VAL_SONIC_KNUCKLES_CHS "索尼克 & 奈克鲁斯"
 #define GENESIS_PLUS_GX_ASPECT_RATIO_LABEL_CHS "核心提供的宽高比"
-#define GENESIS_PLUS_GX_ASPECT_RATIO_INFO_0_CHS "选择首选内容宽高比。这只适用于RetroArch的宽高比设置为视频设置中的“核心提供”。"
-#define OPTION_VAL_NTSC_PAR_CHS NULL
-#define OPTION_VAL_PAL_PAR_CHS NULL
+#define GENESIS_PLUS_GX_ASPECT_RATIO_INFO_0_CHS "选择首选的内容宽高比。这仅在 RetroArch 的宽高比设置为“核心提供”时才适用。"
+#define OPTION_VAL_NTSC_PAR_CHS "NTSC 像素宽高比"
+#define OPTION_VAL_PAL_PAR_CHS "PAL 像素宽高比"
 #define OPTION_VAL_4_3_CHS NULL
-#define OPTION_VAL_UNCORRECTED_CHS NULL
+#define OPTION_VAL_UNCORRECTED_CHS "未校正"
 #define GENESIS_PLUS_GX_OVERSCAN_LABEL_CHS "边框"
-#define GENESIS_PLUS_GX_OVERSCAN_INFO_0_CHS "启用此选项以显示屏幕顶部/底部和/或左/右侧的覆盖区域。 这些通常被贝塞尔人隐藏在标准定义电视的边缘。"
+#define GENESIS_PLUS_GX_OVERSCAN_INFO_0_CHS "启用此项可在屏幕顶部/底部和/或左侧/右侧显示过扫描区域。这些区域通常会被标准定义电视屏幕边缘的边框所遮挡。"
 #define OPTION_VAL_TOP_BOTTOM_CHS "顶部/底部"
-#define OPTION_VAL_LEFT_RIGHT_CHS "左/右"
-#define OPTION_VAL_FULL_CHS "全双工"
-#define GENESIS_PLUS_GX_LEFT_BORDER_LABEL_CHS "隐藏主系统侧边框"
-#define GENESIS_PLUS_GX_LEFT_BORDER_INFO_0_CHS "从屏幕左侧切断8像素，或者在运行主系统游戏时切断左侧和右侧。"
-#define OPTION_VAL_LEFT_BORDER_CHS "仅左边框"
-#define OPTION_VAL_LEFT_RIGHT_BORDERS_CHS "左和右边边界"
-#define GENESIS_PLUS_GX_GG_EXTRA_LABEL_CHS "游戏装备扩展屏幕"
-#define GENESIS_PLUS_GX_GG_EXTRA_INFO_0_CHS "强制游戏装备标题在短信模式下运行，分辨率增加256x192。 可能会显示额外内容，但通常会显示损坏/不需要的图像数据。"
-#define GENESIS_PLUS_GX_BLARGG_NTSC_FILTER_LABEL_CHS "Blgg NTSC过滤器"
-#define GENESIS_PLUS_GX_BLARGG_NTSC_FILTER_INFO_0_CHS "将视频过滤器应用于模仿的各种NTSC电视信号。"
+#define OPTION_VAL_LEFT_RIGHT_CHS "左侧/右侧"
+#define OPTION_VAL_FULL_CHS "全部"
+#define GENESIS_PLUS_GX_LEFT_BORDER_LABEL_CHS "隐藏 Master System 侧面边框"
+#define GENESIS_PLUS_GX_LEFT_BORDER_INFO_0_CHS "在运行 Master System 游戏时，从屏幕左侧裁剪掉 8 个像素，或同时裁剪左右两侧。"
+#define OPTION_VAL_LEFT_BORDER_CHS "仅左侧边框"
+#define OPTION_VAL_LEFT_RIGHT_BORDERS_CHS "左右边框"
+#define GENESIS_PLUS_GX_GG_EXTRA_LABEL_CHS "Game Gear 扩展屏幕"
+#define GENESIS_PLUS_GX_GG_EXTRA_INFO_0_CHS "强制 Game Gear 游戏以 SMS 模式运行，分辨率为 256x192。可能会显示额外内容，但通常会显示一个包含损坏/不需要图像数据的边框。"
+#define GENESIS_PLUS_GX_BLARGG_NTSC_FILTER_LABEL_CHS "Blargg NTSC 滤镜"
+#define GENESIS_PLUS_GX_BLARGG_NTSC_FILTER_INFO_0_CHS "应用视频滤镜以模拟各种 NTSC 电视信号。"
 #define OPTION_VAL_MONOCHROME_CHS "单色"
-#define OPTION_VAL_COMPOSITE_CHS "合成"
+#define OPTION_VAL_COMPOSITE_CHS "复合"
 #define OPTION_VAL_SVIDEO_CHS "S-视频"
 #define OPTION_VAL_RGB_CHS NULL
-#define GENESIS_PLUS_GX_LCD_FILTER_LABEL_CHS "LCD重影过滤器"
-#define GENESIS_PLUS_GX_LCD_FILTER_INFO_0_CHS "应用图像“ghosting”过滤器来模拟游戏工具和创意Nomad LCD 面板的显示特性。"
-#define GENESIS_PLUS_GX_RENDER_LABEL_CHS "交错模式2输出"
-#define GENESIS_PLUS_GX_RENDER_INFO_0_CHS "交错模式2允许Mega Drive/Genesis输出双身高度(高分辨率) 320x448图像，绘制备用扫描线路每个帧(这个图像用于音效2和战斗车多人游戏模式)。 “双字段”模拟原始硬件，产生一幅含有闪烁/交错的图像的尖锐图像。 “单个字段”使用去交错过滤器，稳定图像，但造成轻微模糊。"
-#define OPTION_VAL_SINGLE_FIELD_CHS "单字节"
-#define OPTION_VAL_DOUBLE_FIELD_CHS "双字节"
+#define GENESIS_PLUS_GX_LCD_FILTER_LABEL_CHS "LCD 伪影滤镜"
+#define GENESIS_PLUS_GX_LCD_FILTER_INFO_0_CHS "应用图像“伪影”滤镜，以模拟 Game Gear 和 Genesis Nomad LCD 屏幕的显示特性。"
+#define GENESIS_PLUS_GX_RENDER_LABEL_CHS "隔行模式 2 输出"
+#define GENESIS_PLUS_GX_RENDER_INFO_0_CHS "隔行模式 2 允许 Mega Drive/Genesis 通过绘制交替的扫描线来输出双倍高度（高分辨率）的 320x448 图像。“双场”模仿原始硬件，产生清晰的图像，但带有闪烁/隔行扫描伪影。“单场”应用去隔行滤镜，可稳定图像但会造成轻微模糊。"
+#define OPTION_VAL_SINGLE_FIELD_CHS "单场"
+#define OPTION_VAL_DOUBLE_FIELD_CHS "双场"
 #define GENESIS_PLUS_GX_FRAMESKIP_LABEL_CHS "跳帧"
-#define GENESIS_PLUS_GX_FRAMESKIP_INFO_0_CHS "跳过帧以避免运行下的音频缓冲区(崩溃)。提高性能以牺牲视觉性能。 “自动”跳板帧在前端建议时。“手动”使用了“Frameskip 阈值(%)”设置。"
+#define GENESIS_PLUS_GX_FRAMESKIP_INFO_0_CHS "跳过帧以避免音频缓冲区欠载（爆音）。以牺牲视觉流畅度为代价提升性能。“自动”模式由前端建议时跳帧。“手动”模式使用“跳帧阈值 (%)”设置。"
 #define OPTION_VAL_MANUAL_CHS "手动"
-#define GENESIS_PLUS_GX_FRAMESKIP_THRESHOLD_LABEL_CHS "跳帧阈值(%)"
-#define GENESIS_PLUS_GX_FRAMESKIP_THRESHOLD_INFO_0_CHS "当“跳帧”功能设置成“手动”，请在下方指定跳帧占音频缓存的比例（百分比）。更高的值可以降低因频繁丢帧而导致的爆音风险。"
-#define GENESIS_PLUS_GX_YM2413_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_YM2413_INFO_0_CHS "启用特定的 Sega Mark III/Master 系统游戏使用的 FM 声音单元来增强音频输出。"
-#define GENESIS_PLUS_GX_YM2413_CORE_LABEL_CHS "Master System FM (YM2413) 核心。"
-#define GENESIS_PLUS_GX_YM2413_CORE_INFO_0_CHS "选择用于模拟Sega Mark III/Master 系统的 FM 声音单元的方法。 “MAME”选项是快速的，在大多数系统上运行全速。 “Nuked”选项是周期准确的，质量很高，并且有大量的 CPU 要求。"
+#define GENESIS_PLUS_GX_FRAMESKIP_THRESHOLD_LABEL_CHS "跳帧阈值（%）"
+#define GENESIS_PLUS_GX_FRAMESKIP_THRESHOLD_INFO_0_CHS "当“跳帧”设为“手动”时，指定音频缓冲区占用率阈值（百分比），低于该值时将跳过帧。数值越高，跳帧越频繁，爆音风险越低。"
+#define GENESIS_PLUS_GX_YM2413_LABEL_CHS "Master System FM（YM2413）"
+#define GENESIS_PLUS_GX_YM2413_INFO_0_CHS "启用对某些 Sega Mark III/Master System 游戏使用的 FM 音源单元的模拟。"
+#define GENESIS_PLUS_GX_YM2413_CORE_LABEL_CHS "Master System FM（YM2413）核心"
+#define GENESIS_PLUS_GX_YM2413_CORE_INFO_0_CHS "选择用于模拟 Sega Mark III/Master System 的 FM 音源单元的方法。“MAME”选项速度快，在大多数系统上全速运行。“Nuked”选项周期精确、质量非常高，但对 CPU 要求很高。"
 #define OPTION_VAL_MAME_CHS NULL
-#define OPTION_VAL_NUKED_CHS "原型"
+#define OPTION_VAL_NUKED_CHS NULL
 #define GENESIS_PLUS_GX_YM2612_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_YM2612_INFO_0_CHS "选择用于模拟Mega Drive/Genesis调频合成器(主声音生成器) 的方法。 “MAME”选项是快速的，并在大多数系统上运行全速。 “Nuked”选项是周期准确的，质量很高，并且有大量的 CPU 要求。 YM2612 芯片被原型1 Mega Drive/Genesis使用。YM3438将用于以后的 Mega Drive/Genesis 版本。"
-#define GENESIS_PLUS_GX_YM2612_INFO_1_CHS "选择用于模拟Mega Drive/Genesis调频合成器(主声音生成器) 的方法。 YM2612 芯片被原型1 Mega Drive/Genesis使用。YM3438将用于以后的 Mega Drive/Genesis 版本。"
-#define OPTION_VAL_MAME_YM2612_CHS NULL
-#define OPTION_VAL_MAME_ASIC_YM3438_CHS NULL
-#define OPTION_VAL_MAME_ENHANCED_YM3438_CHS "MAME (增强的 YM3438)"
-#define OPTION_VAL_NUKED_YM2612_CHS "原型 (YM2612)"
-#define OPTION_VAL_NUKED_YM3438_CHS "原型(YM3438)"
+#define GENESIS_PLUS_GX_YM2612_INFO_0_CHS "选择用于模拟 Mega Drive/Genesis 的 FM 合成器（主声音发生器）的方法。“MAME”选项速度较快，在大多数系统上能全速运行。“Nuked”选项周期精确、音质极高，但对 CPU 有较高要求。YM2612 芯片用于原始的 Model 1 Mega Drive/Genesis。YM3438 芯片用于后续版本的 Mega Drive/Genesis。"
+#define GENESIS_PLUS_GX_YM2612_INFO_1_CHS "选择用于模拟 Mega Drive/Genesis 的 FM 合成器（主声音发生器）的方法。YM2612 芯片用于原始的 Model 1 Mega Drive/Genesis。YM3438 芯片用于后续版本的 Mega Drive/Genesis。"
+#define OPTION_VAL_MAME_YM2612_CHS "MAME（YM2612）"
+#define OPTION_VAL_MAME_ASIC_YM3438_CHS "MAME（ASIC YM3438）"
+#define OPTION_VAL_MAME_ENHANCED_YM3438_CHS "MAME（增强版 YM3438）"
+#define OPTION_VAL_NUKED_YM2612_CHS "原型（YM2612）"
+#define OPTION_VAL_NUKED_YM3438_CHS "原型（YM3438）"
 #define GENESIS_PLUS_GX_SOUND_OUTPUT_LABEL_CHS "声音输出"
 #define GENESIS_PLUS_GX_SOUND_OUTPUT_INFO_0_CHS "选择立体声或单声道播放。"
 #define OPTION_VAL_STEREO_CHS "立体声"
 #define OPTION_VAL_MONO_CHS "单声道"
-#define GENESIS_PLUS_GX_AUDIO_FILTER_LABEL_CHS "音频过滤器"
-#define GENESIS_PLUS_GX_AUDIO_FILTER_INFO_0_CHS "启用低通道音频过滤器以更好地模拟模型1 Mega Drive/Genesis的特征声音。"
-#define OPTION_VAL_LOW_PASS_CHS "低通滤波器"
+#define GENESIS_PLUS_GX_AUDIO_FILTER_LABEL_CHS "音频滤波器"
+#define GENESIS_PLUS_GX_AUDIO_FILTER_INFO_0_CHS "启用低通音频滤波器，以更好地模拟 Model 1 Mega Drive/Genesis 的特征音效。"
+#define OPTION_VAL_LOW_PASS_CHS "低通"
 #define OPTION_VAL_EQ_CHS "均衡器"
 #define GENESIS_PLUS_GX_LOWPASS_RANGE_LABEL_CHS "低通滤波器 %"
-#define GENESIS_PLUS_GX_LOWPASS_RANGE_INFO_0_CHS "指定音频低通过过滤器的截断频率。 较高的值提高了该过滤器的“强度”，因为高频谱范围更广。"
-#define GENESIS_PLUS_GX_PSG_PREAMP_LABEL_CHS "PSG 预置级别"
-#define GENESIS_PLUS_GX_PSG_PREAMP_INFO_0_CHS "设置模拟SN764964频道可编程声音生成器在SG-1000中的音频前置放大器级别 Sega Mark III, Master System, Game Gear and Mega Drive/Genesis."
-#define GENESIS_PLUS_GX_FM_PREAMP_LABEL_CHS "FM 预置级别"
-#define GENESIS_PLUS_GX_FM_PREAMP_INFO_0_CHS "设置模拟Mega 驱动器/Genesis FM声音合成器或 Sega Mark III/Master System FM 声音设备的音频放大器级别。"
+#define GENESIS_PLUS_GX_LOWPASS_RANGE_INFO_0_CHS "指定音频低通滤波器的截止频率。较高的值会增加感知到的“强度”，因为更宽范围的高频频谱被衰减了。"
+#define GENESIS_PLUS_GX_PSG_PREAMP_LABEL_CHS "PSG 前置放大器电平"
+#define GENESIS_PLUS_GX_PSG_PREAMP_INFO_0_CHS "设置模拟的 SN76496 4 声道可编程声音发生器的前置放大器电平，该芯片存在于 SG-1000、Sega Mark III、Master System、Game Gear 和 Mega Drive/Genesis 中。"
+#define GENESIS_PLUS_GX_FM_PREAMP_LABEL_CHS "FM 前置放大器电平"
+#define GENESIS_PLUS_GX_FM_PREAMP_INFO_0_CHS "设置模拟的 Mega Drive/Genesis FM 合成器或 Sega Mark III/Master System FM 声音单元的前置放大器电平。"
 #define GENESIS_PLUS_GX_CDDA_VOLUME_LABEL_CHS "CD-DA 音量"
-#define GENESIS_PLUS_GX_CDDA_VOLUME_INFO_0_CHS "调整模拟的 CD 音频回放输出的混合音量。"
+#define GENESIS_PLUS_GX_CDDA_VOLUME_INFO_0_CHS "调整模拟的 CD 音频播放输出的混合音量。"
 #define GENESIS_PLUS_GX_PCM_VOLUME_LABEL_CHS "PCM 音量"
-#define GENESIS_PLUS_GX_PCM_VOLUME_INFO_0_CHS "调整模拟的Sega CD/Mega-CD RF5C164 PCM 声音生成器输出的混合音量。"
-#define GENESIS_PLUS_GX_AUDIO_EQ_LOW_LABEL_CHS "低频均衡"
-#define GENESIS_PLUS_GX_AUDIO_EQ_LOW_INFO_0_CHS "调整内部音频均衡器的低范围波段。"
-#define GENESIS_PLUS_GX_AUDIO_EQ_MID_LABEL_CHS "中频均衡"
-#define GENESIS_PLUS_GX_AUDIO_EQ_MID_INFO_0_CHS "调整内部音频均衡器的中间范围波段。"
-#define GENESIS_PLUS_GX_AUDIO_EQ_HIGH_LABEL_CHS "高频均衡"
-#define GENESIS_PLUS_GX_AUDIO_EQ_HIGH_INFO_0_CHS "调整内部音频均衡器的高范围波段。"
-#define GENESIS_PLUS_GX_GUN_INPUT_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_GUN_INPUT_INFO_0_CHS NULL
+#define GENESIS_PLUS_GX_PCM_VOLUME_INFO_0_CHS "调整模拟的 Sega CD/Mega-CD RF5C164 PCM 声音发生器输出的混合音量。"
+#define GENESIS_PLUS_GX_AUDIO_EQ_LOW_LABEL_CHS "均衡器低频"
+#define GENESIS_PLUS_GX_AUDIO_EQ_LOW_INFO_0_CHS "调整内部音频均衡器的低频段。"
+#define GENESIS_PLUS_GX_AUDIO_EQ_MID_LABEL_CHS "均衡器中频"
+#define GENESIS_PLUS_GX_AUDIO_EQ_MID_INFO_0_CHS "调整内部音频均衡器的中频段。"
+#define GENESIS_PLUS_GX_AUDIO_EQ_HIGH_LABEL_CHS "均衡器高频"
+#define GENESIS_PLUS_GX_AUDIO_EQ_HIGH_INFO_0_CHS "调整内部音频均衡器的高频段。"
+#define GENESIS_PLUS_GX_GUN_INPUT_LABEL_CHS "光枪输入"
+#define GENESIS_PLUS_GX_GUN_INPUT_INFO_0_CHS "使用鼠标控制的“光枪”或“触摸屏”输入。"
 #define OPTION_VAL_LIGHTGUN_CHS "光枪"
 #define OPTION_VAL_TOUCHSCREEN_CHS "触摸屏"
-#define GENESIS_PLUS_GX_GUN_CURSOR_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_GUN_CURSOR_INFO_0_CHS NULL
+#define GENESIS_PLUS_GX_GUN_CURSOR_LABEL_CHS "显示光枪准星"
+#define GENESIS_PLUS_GX_GUN_CURSOR_INFO_0_CHS "在使用 MD Menacer、MD Justifiers 和 MS Light Phaser 输入设备类型时，显示光枪准星。"
 #define GENESIS_PLUS_GX_INVERT_MOUSE_LABEL_CHS "反转鼠标 Y 轴"
-#define GENESIS_PLUS_GX_INVERT_MOUSE_INFO_0_CHS NULL
-#define GENESIS_PLUS_GX_NO_SPRITE_LIMIT_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_NO_SPRITE_LIMIT_INFO_0_CHS NULL
-#define GENESIS_PLUS_GX_ENHANCED_VSCROLL_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_ENHANCED_VSCROLL_INFO_0_CHS NULL
-#define GENESIS_PLUS_GX_ENHANCED_VSCROLL_LIMIT_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_ENHANCED_VSCROLL_LIMIT_INFO_0_CHS NULL
+#define GENESIS_PLUS_GX_INVERT_MOUSE_INFO_0_CHS "反转 MD 鼠标输入设备类型的 Y 轴。"
+#define GENESIS_PLUS_GX_NO_SPRITE_LIMIT_LABEL_CHS "移除每行精灵限制"
+#define GENESIS_PLUS_GX_NO_SPRITE_LIMIT_INFO_0_CHS "移除原始的每扫描线精灵硬件限制。这可以减少闪烁，但可能导致视觉故障，因为一些游戏会利用此硬件限制来生成特殊效果。"
+#define GENESIS_PLUS_GX_ENHANCED_VSCROLL_LABEL_CHS "增强型每图块垂直滚动"
+#define GENESIS_PLUS_GX_ENHANCED_VSCROLL_INFO_0_CHS "允许每个独立的图块单元进行垂直滚动，而不是以 16px 2-cell 的方式，而是通过与相邻单元的垂直滚动值取平均来实现。此破解仅适用于少数使用 2-cell 垂直滚动模式的游戏。"
+#define GENESIS_PLUS_GX_ENHANCED_VSCROLL_LIMIT_LABEL_CHS "增强型每图块垂直滚动限制"
+#define GENESIS_PLUS_GX_ENHANCED_VSCROLL_LIMIT_INFO_0_CHS "仅当启用“增强型每图块垂直滚动”时才生效。调整垂直滚动增强的限制。当相邻图块之间的垂直滚动差异大于此限制时，增强功能将被禁用。"
 #define GENESIS_PLUS_GX_OVERCLOCK_LABEL_CHS "CPU 速度"
-#define GENESIS_PLUS_GX_OVERCLOCK_INFO_0_CHS NULL
+#define GENESIS_PLUS_GX_OVERCLOCK_INFO_0_CHS "超频模拟的 CPU。可以减少卡顿，但也可能引起画面故障。"
 #define OPTION_VAL_100_CHS NULL
 #define OPTION_VAL_125_CHS NULL
 #define OPTION_VAL_150_CHS NULL
@@ -8082,54 +8082,54 @@ struct retro_core_options_v2 options_ca = {
 #define OPTION_VAL_450_CHS NULL
 #define OPTION_VAL_475_CHS NULL
 #define OPTION_VAL_500_CHS NULL
-#define GENESIS_PLUS_GX_FORCE_DTACK_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_FORCE_DTACK_INFO_0_CHS NULL
+#define GENESIS_PLUS_GX_FORCE_DTACK_LABEL_CHS "系统锁定"
+#define GENESIS_PLUS_GX_FORCE_DTACK_INFO_0_CHS "模拟在真实硬件上执行非法地址访问时发生的系统锁定。此功能仅应在运行某些依赖非法行为才能正常工作的演示或自制程序时禁用。"
 #define GENESIS_PLUS_GX_ADDR_ERROR_LABEL_CHS "68K 地址错误"
-#define GENESIS_PLUS_GX_ADDR_ERROR_INFO_0_CHS NULL
-#define GENESIS_PLUS_GX_CD_LATENCY_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_CD_LATENCY_INFO_0_CHS NULL
-#define GENESIS_PLUS_GX_CD_PRECACHE_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_CD_PRECACHE_INFO_0_CHS NULL
-#define GENESIS_PLUS_GX_SHOW_ADVANCED_AUDIO_SETTINGS_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_SHOW_ADVANCED_AUDIO_SETTINGS_INFO_0_CHS NULL
-#define GENESIS_PLUS_GX_PSG_CHANNEL_0_VOLUME_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_PSG_CHANNEL_0_VOLUME_INFO_0_CHS NULL
-#define GENESIS_PLUS_GX_PSG_CHANNEL_1_VOLUME_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_PSG_CHANNEL_1_VOLUME_INFO_0_CHS NULL
-#define GENESIS_PLUS_GX_PSG_CHANNEL_2_VOLUME_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_PSG_CHANNEL_2_VOLUME_INFO_0_CHS NULL
-#define GENESIS_PLUS_GX_PSG_CHANNEL_3_VOLUME_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_PSG_CHANNEL_3_VOLUME_INFO_0_CHS NULL
-#define GENESIS_PLUS_GX_MD_CHANNEL_0_VOLUME_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_MD_CHANNEL_0_VOLUME_INFO_0_CHS NULL
-#define GENESIS_PLUS_GX_MD_CHANNEL_1_VOLUME_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_MD_CHANNEL_1_VOLUME_INFO_0_CHS NULL
-#define GENESIS_PLUS_GX_MD_CHANNEL_2_VOLUME_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_MD_CHANNEL_2_VOLUME_INFO_0_CHS NULL
-#define GENESIS_PLUS_GX_MD_CHANNEL_3_VOLUME_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_MD_CHANNEL_3_VOLUME_INFO_0_CHS NULL
-#define GENESIS_PLUS_GX_MD_CHANNEL_4_VOLUME_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_MD_CHANNEL_4_VOLUME_INFO_0_CHS NULL
-#define GENESIS_PLUS_GX_MD_CHANNEL_5_VOLUME_LABEL_CHS NULL
-#define GENESIS_PLUS_GX_MD_CHANNEL_5_VOLUME_INFO_0_CHS NULL
-#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_0_VOLUME_LABEL_CHS "Master System FM (YM2413) 通道 0 音量 %"
-#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_0_VOLUME_INFO_0_CHS "降低Master System FM 频道0的音量。"
-#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_1_VOLUME_LABEL_CHS "Master System FM (YM2413) 通道 1 音量 %"
-#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_1_VOLUME_INFO_0_CHS "降低Master System FM 频道1的音量。"
-#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_2_VOLUME_LABEL_CHS "Master System FM (YM2413) 通道 2 音量 %"
-#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_2_VOLUME_INFO_0_CHS "降低Master System FM 频道2的音量。"
-#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_3_VOLUME_LABEL_CHS "Master System FM (YM2413) 通道 3 音量 %"
-#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_3_VOLUME_INFO_0_CHS "降低Master System FM 频道3的音量。"
-#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_4_VOLUME_LABEL_CHS "Master System FM (YM2413) 频道4 音量 %"
-#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_4_VOLUME_INFO_0_CHS "降低Master System FM 频道4的音量。"
-#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_5_VOLUME_LABEL_CHS "Master System FM (YM2413) 通道 5 音量 %"
-#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_5_VOLUME_INFO_0_CHS "降低Master System FM 频道5的音量。"
-#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_6_VOLUME_LABEL_CHS "Master System FM (YM2413) 通道 6 音量 %"
-#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_6_VOLUME_INFO_0_CHS "降低Master System FM 频道6的音量。"
-#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_7_VOLUME_LABEL_CHS "Master System FM (YM2413) 频道 7 音量 %"
-#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_7_VOLUME_INFO_0_CHS "降低 Master System FM 频道7 的音量。"
-#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_8_VOLUME_LABEL_CHS "Master System FM (YM2413) 频道 8 音量 %"
-#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_8_VOLUME_INFO_0_CHS "降低Master System FM 频道8 的音量。"
+#define GENESIS_PLUS_GX_ADDR_ERROR_INFO_0_CHS "Mega Drive/Genesis 的主 CPU (Motorola 68000) 在尝试执行未对齐的内存访问时会生成“地址错误”异常（崩溃）。启用此项将模拟此行为。此功能仅应在运行 ROM 破解程序时禁用，因为这些破解程序通常使用精度较低的模拟器开发，并可能依赖无效的 RAM 访问来正确运行。"
+#define GENESIS_PLUS_GX_CD_LATENCY_LABEL_CHS "CD 访问时间"
+#define GENESIS_PLUS_GX_CD_LATENCY_INFO_0_CHS "在开始读取或定位到加载光盘上的特定位置时，模拟原始 CD 硬件的延迟。这对于少数因 CD 数据过早可用而崩溃的 CD 游戏是必需的，同时也能修复一些游戏中的 CD 音频不同步问题。禁用此项对于 MSU-MD 游戏可能有用，因为它能使 CD 音轨循环更流畅。"
+#define GENESIS_PLUS_GX_CD_PRECACHE_LABEL_CHS "CD 镜像缓存"
+#define GENESIS_PLUS_GX_CD_PRECACHE_INFO_0_CHS "启动时将 CD 镜像加载到内存中。仅支持 CHD 格式。需要重启。"
+#define GENESIS_PLUS_GX_SHOW_ADVANCED_AUDIO_SETTINGS_LABEL_CHS "显示高级音频音量设置（重新打开菜单）"
+#define GENESIS_PLUS_GX_SHOW_ADVANCED_AUDIO_SETTINGS_INFO_0_CHS "启用低级音频声道参数的配置。注意：必须切换“快速菜单”才能使此设置生效。"
+#define GENESIS_PLUS_GX_PSG_CHANNEL_0_VOLUME_LABEL_CHS "PSG 音调通道 0 音量 %"
+#define GENESIS_PLUS_GX_PSG_CHANNEL_0_VOLUME_INFO_0_CHS "降低 PSG 音调通道 0 的音量。"
+#define GENESIS_PLUS_GX_PSG_CHANNEL_1_VOLUME_LABEL_CHS "PSG 音调通道 1 音量 %"
+#define GENESIS_PLUS_GX_PSG_CHANNEL_1_VOLUME_INFO_0_CHS "降低 PSG 音调通道 1 的音量。"
+#define GENESIS_PLUS_GX_PSG_CHANNEL_2_VOLUME_LABEL_CHS "PSG 音调通道 2 音量 %"
+#define GENESIS_PLUS_GX_PSG_CHANNEL_2_VOLUME_INFO_0_CHS "降低 PSG 音调通道 2 的音量。"
+#define GENESIS_PLUS_GX_PSG_CHANNEL_3_VOLUME_LABEL_CHS "PSG 音调通道 3 音量 %"
+#define GENESIS_PLUS_GX_PSG_CHANNEL_3_VOLUME_INFO_0_CHS "降低 PSG 音调通道 3 的音量。"
+#define GENESIS_PLUS_GX_MD_CHANNEL_0_VOLUME_LABEL_CHS "Mega Drive/Genesis FM 通道 0 音量 %"
+#define GENESIS_PLUS_GX_MD_CHANNEL_0_VOLUME_INFO_0_CHS "降低 Mega Drive/Genesis FM 通道 0 的音量。仅与 MAME FM 模拟器兼容。"
+#define GENESIS_PLUS_GX_MD_CHANNEL_1_VOLUME_LABEL_CHS "Mega Drive/Genesis FM 通道 1 音量 %"
+#define GENESIS_PLUS_GX_MD_CHANNEL_1_VOLUME_INFO_0_CHS "降低 Mega Drive/Genesis FM 通道 1 的音量。仅与 MAME FM 模拟器兼容。"
+#define GENESIS_PLUS_GX_MD_CHANNEL_2_VOLUME_LABEL_CHS "Mega Drive/Genesis FM 通道 2 音量 %"
+#define GENESIS_PLUS_GX_MD_CHANNEL_2_VOLUME_INFO_0_CHS "降低 Mega Drive/Genesis FM 通道 2 的音量。仅与 MAME FM 模拟器兼容。"
+#define GENESIS_PLUS_GX_MD_CHANNEL_3_VOLUME_LABEL_CHS "Mega Drive/Genesis FM 通道 3 音量 %"
+#define GENESIS_PLUS_GX_MD_CHANNEL_3_VOLUME_INFO_0_CHS "降低 Mega Drive/Genesis FM 通道 3 的音量。仅与 MAME FM 模拟器兼容。"
+#define GENESIS_PLUS_GX_MD_CHANNEL_4_VOLUME_LABEL_CHS "Mega Drive/Genesis FM 通道 4 音量 %"
+#define GENESIS_PLUS_GX_MD_CHANNEL_4_VOLUME_INFO_0_CHS "降低 Mega Drive/Genesis FM 通道 4 的音量。仅与 MAME FM 模拟器兼容。"
+#define GENESIS_PLUS_GX_MD_CHANNEL_5_VOLUME_LABEL_CHS "Mega Drive/Genesis FM 通道 5 音量 %"
+#define GENESIS_PLUS_GX_MD_CHANNEL_5_VOLUME_INFO_0_CHS "降低 Mega Drive/Genesis FM 通道 5 的音量。仅与 MAME FM 模拟器兼容。"
+#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_0_VOLUME_LABEL_CHS "Master System FM（YM2413）通道 0 音量 %"
+#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_0_VOLUME_INFO_0_CHS "降低 Master System FM 通道 0 的音量。"
+#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_1_VOLUME_LABEL_CHS "Master System FM（YM2413）通道 1 音量 %"
+#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_1_VOLUME_INFO_0_CHS "降低 Master System FM 通道 1 的音量。"
+#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_2_VOLUME_LABEL_CHS "Master System FM（YM2413）通道 2 音量 %"
+#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_2_VOLUME_INFO_0_CHS "降低 Master System FM 通道 2 的音量。"
+#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_3_VOLUME_LABEL_CHS "Master System FM（YM2413）通道 3 音量 %"
+#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_3_VOLUME_INFO_0_CHS "降低 Master System FM 通道 3 的音量。"
+#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_4_VOLUME_LABEL_CHS "Master System FM（YM2413）通道 4 音量 %"
+#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_4_VOLUME_INFO_0_CHS "降低 Master System FM 通道 4 的音量。"
+#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_5_VOLUME_LABEL_CHS "Master System FM（YM2413）通道 5 音量 %"
+#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_5_VOLUME_INFO_0_CHS "降低 Master System FM 通道 5 的音量。"
+#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_6_VOLUME_LABEL_CHS "Master System FM（YM2413）通道 6 音量 %"
+#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_6_VOLUME_INFO_0_CHS "降低 Master System FM 通道 6 的音量。"
+#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_7_VOLUME_LABEL_CHS "Master System FM（YM2413）通道 7 音量 %"
+#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_7_VOLUME_INFO_0_CHS "降低 Master System FM 通道 7 的音量。"
+#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_8_VOLUME_LABEL_CHS "Master System FM（YM2413）通道 8 音量 %"
+#define GENESIS_PLUS_GX_SMS_FM_CHANNEL_8_VOLUME_INFO_0_CHS "降低 Master System FM 通道 8 的音量。"
 
 struct retro_core_option_v2_category option_cats_chs[] = {
    {
