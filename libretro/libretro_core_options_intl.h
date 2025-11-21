@@ -64735,7 +64735,7 @@ struct retro_core_options_v2 options_val = {
 #define OPTION_VAL_MONOCHROME_VN "Đơn sắc"
 #define OPTION_VAL_COMPOSITE_VN "Kết hợp"
 #define OPTION_VAL_SVIDEO_VN NULL
-#define OPTION_VAL_RGB_VN NULL
+#define OPTION_VAL_RGB_VN "Tín hiệu RGB (đỏ–lục–lam)"
 #define GENESIS_PLUS_GX_LCD_FILTER_LABEL_VN "Bộ lọc bóng ma LCD"
 #define GENESIS_PLUS_GX_LCD_FILTER_INFO_0_VN "Áp dụng bộ lọc ‘bóng ma’ hình ảnh để mô phỏng đặc tính hiển thị của màn hình LCD Game Gear và Genesis Nomad."
 #define GENESIS_PLUS_GX_RENDER_LABEL_VN "Chế độ xen kẽ 2"
