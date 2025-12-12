@@ -52052,7 +52052,7 @@ struct retro_core_options_v2 options_pt_pt = {
 #define CATEGORY_VIDEO_INFO_0_RU "Настройки соотношения сторон, кадрирования, графических фильтров и пропуска кадров."
 #define CATEGORY_AUDIO_LABEL_RU "Аудио"
 #define CATEGORY_AUDIO_INFO_0_RU "Настройки звуковых устройств."
-#define CATEGORY_INPUT_LABEL_RU "Ввод"
+#define CATEGORY_INPUT_LABEL_RU "Устройства ввода"
 #define CATEGORY_INPUT_INFO_0_RU "Настройки ввода для мыши и/или светового пистолета."
 #define CATEGORY_HACKS_LABEL_RU "Хаки эмуляции"
 #define CATEGORY_HACKS_INFO_0_RU "Настройка разгона процессора и параметров точности эмуляции, влияющих на производительность и совместимость."
