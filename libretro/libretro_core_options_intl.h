@@ -56914,7 +56914,7 @@ struct retro_core_options_v2 options_sr = {
 #define GENESIS_PLUS_GX_INVERT_MOUSE_LABEL_SV "Invertera musens Y-axel"
 #define GENESIS_PLUS_GX_INVERT_MOUSE_INFO_0_SV "Inverterar Y-axeln för inmatningsenhetstypen MD Mouse."
 #define GENESIS_PLUS_GX_NO_SPRITE_LIMIT_LABEL_SV "Ta bort blockfigursgräns per rad"
-#define GENESIS_PLUS_GX_NO_SPRITE_LIMIT_INFO_0_SV "Tar bort den ursprungliga hårdvarubegränsningen för sprite per skanlinje. Detta minskar flimret men kan orsaka visuella störningar, eftersom vissa spel utnyttjar hårdvarubegränsningen för att skapa specialeffekter."
+#define GENESIS_PLUS_GX_NO_SPRITE_LIMIT_INFO_0_SV "Tar bort den ursprungliga hårdvarubegränsningen för sprite per skanningslinje. Detta minskar flimret men kan orsaka visuella störningar, eftersom vissa spel utnyttjar hårdvarubegränsningen för att skapa specialeffekter."
 #define GENESIS_PLUS_GX_ENHANCED_VSCROLL_LABEL_SV "Förbättrad vertikal rullning per ruta"
 #define GENESIS_PLUS_GX_ENHANCED_VSCROLL_INFO_0_SV "Gör det möjligt att bläddra vertikalt i varje enskild cell, istället för 16px 2-cell, genom att beräkna genomsnittet med vscroll-värdet för den angränsande cellen. Detta hack gäller endast för ett fåtal spel som använder 2-cell vertikalt bläddringsläge."
 #define GENESIS_PLUS_GX_ENHANCED_VSCROLL_LIMIT_LABEL_SV "Förbättrad vertikal rullningsgräns per ruta"
