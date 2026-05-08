@@ -33157,7 +33157,7 @@ struct retro_core_options_v2 options_he = {
 #define OPTION_VAL_MASTER_SYSTEM_II_HR NULL
 #define OPTION_VAL_GAME_GEAR_HR NULL
 #define OPTION_VAL_MEGA_DRIVE_GENESIS_HR NULL
-#define GENESIS_PLUS_GX_REGION_DETECT_LABEL_HR NULL
+#define GENESIS_PLUS_GX_REGION_DETECT_LABEL_HR "Regija sustava"
 #define GENESIS_PLUS_GX_REGION_DETECT_INFO_0_HR NULL
 #define OPTION_VAL_NTSC_U_HR NULL
 #define OPTION_VAL_PAL_HR NULL
@@ -33193,7 +33193,7 @@ struct retro_core_options_v2 options_he = {
 #define OPTION_VAL_GAME_GENIE_HR NULL
 #define OPTION_VAL_ACTION_REPLAY_PRO_HR NULL
 #define OPTION_VAL_SONIC_KNUCKLES_HR NULL
-#define GENESIS_PLUS_GX_ASPECT_RATIO_LABEL_HR NULL
+#define GENESIS_PLUS_GX_ASPECT_RATIO_LABEL_HR "Omjer slike koji pruža jezgra"
 #define GENESIS_PLUS_GX_ASPECT_RATIO_INFO_0_HR NULL
 #define OPTION_VAL_NTSC_PAR_HR NULL
 #define OPTION_VAL_PAL_PAR_HR NULL
@@ -33210,7 +33210,7 @@ struct retro_core_options_v2 options_he = {
 #define OPTION_VAL_LEFT_RIGHT_BORDERS_HR NULL
 #define GENESIS_PLUS_GX_GG_EXTRA_LABEL_HR NULL
 #define GENESIS_PLUS_GX_GG_EXTRA_INFO_0_HR NULL
-#define GENESIS_PLUS_GX_BLARGG_NTSC_FILTER_LABEL_HR NULL
+#define GENESIS_PLUS_GX_BLARGG_NTSC_FILTER_LABEL_HR "Blargg NTSC filtar"
 #define GENESIS_PLUS_GX_BLARGG_NTSC_FILTER_INFO_0_HR NULL
 #define OPTION_VAL_MONOCHROME_HR NULL
 #define OPTION_VAL_COMPOSITE_HR NULL
@@ -33222,11 +33222,11 @@ struct retro_core_options_v2 options_he = {
 #define GENESIS_PLUS_GX_RENDER_INFO_0_HR NULL
 #define OPTION_VAL_SINGLE_FIELD_HR NULL
 #define OPTION_VAL_DOUBLE_FIELD_HR NULL
-#define GENESIS_PLUS_GX_FRAMESKIP_LABEL_HR NULL
-#define GENESIS_PLUS_GX_FRAMESKIP_INFO_0_HR NULL
+#define GENESIS_PLUS_GX_FRAMESKIP_LABEL_HR "Preskakanje sličica"
+#define GENESIS_PLUS_GX_FRAMESKIP_INFO_0_HR "Preskočite sličice kako biste izbjegli pražnjenje audio međuspremnika (pucketanje). Poboljšava performanse na štetu glatkoće prikaza. 'Automatski' preskače sličice prema preporuci sučelja. 'Ručno' koristi postavku 'Prag preskakanja sličica (%)'."
 #define OPTION_VAL_MANUAL_HR NULL
-#define GENESIS_PLUS_GX_FRAMESKIP_THRESHOLD_LABEL_HR NULL
-#define GENESIS_PLUS_GX_FRAMESKIP_THRESHOLD_INFO_0_HR NULL
+#define GENESIS_PLUS_GX_FRAMESKIP_THRESHOLD_LABEL_HR "Prag preskakanja sličica (%)"
+#define GENESIS_PLUS_GX_FRAMESKIP_THRESHOLD_INFO_0_HR "Kada je 'Preskakanje sličica' postavljeno na 'Ručno', određuje prag popunjenosti audio međuspremnika (postotak) ispod kojeg će se sličice preskakati. Više vrijednosti smanjuju rizik od pucketanja uzrokujući češće odbacivanje sličica."
 #define GENESIS_PLUS_GX_YM2413_LABEL_HR NULL
 #define GENESIS_PLUS_GX_YM2413_INFO_0_HR NULL
 #define GENESIS_PLUS_GX_YM2413_CORE_LABEL_HR NULL
@@ -33245,7 +33245,7 @@ struct retro_core_options_v2 options_he = {
 #define GENESIS_PLUS_GX_SOUND_OUTPUT_INFO_0_HR NULL
 #define OPTION_VAL_STEREO_HR NULL
 #define OPTION_VAL_MONO_HR NULL
-#define GENESIS_PLUS_GX_AUDIO_FILTER_LABEL_HR NULL
+#define GENESIS_PLUS_GX_AUDIO_FILTER_LABEL_HR "Audio filtar"
 #define GENESIS_PLUS_GX_AUDIO_FILTER_INFO_0_HR NULL
 #define OPTION_VAL_LOW_PASS_HR NULL
 #define OPTION_VAL_EQ_HR NULL
