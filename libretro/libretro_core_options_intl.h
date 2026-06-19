@@ -20528,11 +20528,11 @@ struct retro_core_options_v2 options_en = {
 
 #define CATEGORY_SYSTEM_LABEL_EO NULL
 #define CATEGORY_SYSTEM_INFO_0_EO NULL
-#define CATEGORY_VIDEO_LABEL_EO "Videa pelilo"
+#define CATEGORY_VIDEO_LABEL_EO NULL
 #define CATEGORY_VIDEO_INFO_0_EO NULL
-#define CATEGORY_AUDIO_LABEL_EO "Sona pelilo"
+#define CATEGORY_AUDIO_LABEL_EO "Sono"
 #define CATEGORY_AUDIO_INFO_0_EO NULL
-#define CATEGORY_INPUT_LABEL_EO "Eniga pelilo"
+#define CATEGORY_INPUT_LABEL_EO "Enigo"
 #define CATEGORY_INPUT_INFO_0_EO NULL
 #define CATEGORY_HACKS_LABEL_EO NULL
 #define CATEGORY_HACKS_INFO_0_EO NULL
@@ -20579,7 +20579,7 @@ struct retro_core_options_v2 options_en = {
 #define GENESIS_PLUS_GX_ADD_ON_INFO_0_EO NULL
 #define OPTION_VAL_SEGA_MEGA_CD_EO NULL
 #define OPTION_VAL_MEGASD_EO NULL
-#define OPTION_VAL_NONE_EO NULL
+#define OPTION_VAL_NONE_EO "Neniom"
 #define GENESIS_PLUS_GX_LOCK_ON_LABEL_EO NULL
 #define GENESIS_PLUS_GX_LOCK_ON_INFO_0_EO NULL
 #define OPTION_VAL_GAME_GENIE_EO NULL
@@ -26919,7 +26919,7 @@ struct retro_core_options_v2 options_fi = {
 #define OPTION_VAL_SINGLE_FIELD_FR "Un seul champ"
 #define OPTION_VAL_DOUBLE_FIELD_FR "Double champ"
 #define GENESIS_PLUS_GX_FRAMESKIP_LABEL_FR "Saut d'images"
-#define GENESIS_PLUS_GX_FRAMESKIP_INFO_0_FR "Sauter des images pour éviter que le tampon audio ne soit sous-exécuté (crépitements). Améliore les performances au détriment de la fluidité visuelle. 'Auto' saute des images lorsque l'interface le conseille. 'Manuel' utilise le paramètre 'Seuil de saut d'images (%)'."
+#define GENESIS_PLUS_GX_FRAMESKIP_INFO_0_FR "Sauter des images pour éviter que le tampon audio ne soit sous-exécuté (crépitements). Améliore les performances au détriment de la fluidité visuelle. 'Auto' saute des images lorsque l'interface frontale le conseille. 'Manuel' utilise le paramètre 'Seuil de saut d'images (%)'."
 #define OPTION_VAL_MANUAL_FR "Manuel"
 #define GENESIS_PLUS_GX_FRAMESKIP_THRESHOLD_LABEL_FR "Seuil de saut d'images (%)"
 #define GENESIS_PLUS_GX_FRAMESKIP_THRESHOLD_INFO_0_FR "Lorsque 'Saut d'images' est réglé sur 'Manuel', spécifie le seuil d'occupation du tampon audio (pourcentage) en dessous duquel des images seront sautées. Des valeurs plus élevées réduisent le risque de crépitements en faisant sauter des images plus fréquemment."
@@ -33142,7 +33142,7 @@ struct retro_core_options_v2 options_he = {
 #define CATEGORY_AUDIO_INFO_0_HR NULL
 #define CATEGORY_INPUT_LABEL_HR NULL
 #define CATEGORY_INPUT_INFO_0_HR NULL
-#define CATEGORY_HACKS_LABEL_HR NULL
+#define CATEGORY_HACKS_LABEL_HR "Hakovanje emulacije"
 #define CATEGORY_HACKS_INFO_0_HR NULL
 #define CATEGORY_CHANNEL_VOLUME_LABEL_HR NULL
 #define CATEGORY_CHANNEL_VOLUME_INFO_0_HR NULL
@@ -33213,7 +33213,7 @@ struct retro_core_options_v2 options_he = {
 #define GENESIS_PLUS_GX_BLARGG_NTSC_FILTER_LABEL_HR "Blargg NTSC filtar"
 #define GENESIS_PLUS_GX_BLARGG_NTSC_FILTER_INFO_0_HR NULL
 #define OPTION_VAL_MONOCHROME_HR NULL
-#define OPTION_VAL_COMPOSITE_HR NULL
+#define OPTION_VAL_COMPOSITE_HR "Kompozitni"
 #define OPTION_VAL_SVIDEO_HR NULL
 #define OPTION_VAL_RGB_HR NULL
 #define GENESIS_PLUS_GX_LCD_FILTER_LABEL_HR NULL
@@ -47378,7 +47378,7 @@ struct retro_core_options_v2 options_or = {
 #define OPTION_VAL_ACTION_REPLAY_PRO_PL NULL
 #define OPTION_VAL_SONIC_KNUCKLES_PL NULL
 #define GENESIS_PLUS_GX_ASPECT_RATIO_LABEL_PL NULL
-#define GENESIS_PLUS_GX_ASPECT_RATIO_INFO_0_PL NULL
+#define GENESIS_PLUS_GX_ASPECT_RATIO_INFO_0_PL "Wybierz preferowane proporcje treści. Będzie to miało zastosowanie tylko wtedy, gdy współczynnik proporcji RetroArcha jest ustawiony na 'Dostarczane przez rdzeń' w ustawieniach wideo."
 #define OPTION_VAL_NTSC_PAR_PL NULL
 #define OPTION_VAL_PAL_PAR_PL NULL
 #define OPTION_VAL_4_3_PL NULL
