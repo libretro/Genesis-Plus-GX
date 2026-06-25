@@ -2,7 +2,7 @@
  *  Genesis Plus
  *  Mega Drive cartridge hardware support
  *
- *  Copyright (C) 2007-2025  Eke-Eke (Genesis Plus GX)
+ *  Copyright (C) 2007-2026  Eke-Eke (Genesis Plus GX)
  *
  *  Many cartridge protections were initially documented by Haze
  *  (http://haze.mameworld.info/)
@@ -404,7 +404,7 @@ void md_cart_init(void)
   eeprom_i2c_init();
 
   /* memory-mapped SRAM */
-  if (sram.on && !sram.custom)
+  if (sram.on && !sram.type)
   {
     /* SRAM is mapped by default unless it overlaps with ROM area (Phantasy Star 4, Beyond Oasis/Legend of Thor, World Series Baseball 9x, Duke Nukem 3D,...) */
     if (sram.start >= cart.romsize)
@@ -724,7 +724,34 @@ void md_cart_init(void)
       m68k.memory_map[i].read16   = NULL;
       m68k.memory_map[i].write8   = m68k_unused_8_w;
       m68k.memory_map[i].write16  = m68k_unused_16_w;
-      zbank_memory_map[i].read    = zbank_unused_r;
+      zbank_memory_map[i].read    = NULL;
+      zbank_memory_map[i].write   = zbank_unused_w;
+    }
+  }
+  else if (strstr(rominfo.ROMType, "GM") && strstr(rominfo.product, "00000000-00") &&
+            ((rominfo.checksum == 0x2284) && (rominfo.realchecksum == 0x8dcf))) /* Death & Lead */
+  {
+    /* KAISER WAVE board !TIME handler */
+    cart.hw.time_w = mapper_kaiserwave_w;
+
+    /* enable YX5200 hardware */
+    cart.special |= HW_YX5200;
+
+    /* allocate & clear blip buffer for YX5200 audio stream */
+    snd.blips[3] = blip_new(snd.sample_rate / 10);
+    if (snd.blips[3]) blip_clear(snd.blips[3]);
+
+    /* initialize YX5200 audio */
+    yx5200_init(snd.sample_rate);
+
+    /* 64M extension mapping (upper 4MB of flash memory is apparently unused but still accessible as cartridge board uses same signals as described in https://gitlab.com/doragasu/flatmap64) */
+    for (i=0x40; i<0x80; i++)
+    {
+      m68k.memory_map[i].read8    = NULL;
+      m68k.memory_map[i].read16   = NULL;
+      m68k.memory_map[i].write8   = m68k_unused_8_w;
+      m68k.memory_map[i].write16  = m68k_unused_16_w;
+      zbank_memory_map[i].read    = NULL;
       zbank_memory_map[i].write   = zbank_unused_w;
     }
   }
@@ -747,7 +774,7 @@ void md_cart_init(void)
     flash_cfi_init(S29GL064N_04, flash_otp);
 
     /* SGDK flash-save mapper (8MB ROM with backup RAM mapped in one of the two last 64KB banks, see https://gitlab.com/doragasu/sgdk-flash-save) */
-    m68k.memory_map[0x7e].base    = sram.sram; /* SRAM initially mapped to bank #127 */
+    m68k.memory_map[0x7e].base    = sram.sram; /* backup RAM initially mapped to bank #127 */ 
     m68k.memory_map[0x00].read8   = m68k.memory_map[0x7f].read8   = m68k.memory_map[0x7e].read8   = mapper_flash_r8;
     m68k.memory_map[0x00].read16  = m68k.memory_map[0x7f].read16  = m68k.memory_map[0x7e].read16  = mapper_flash_r16;
     m68k.memory_map[0x00].write8  = m68k.memory_map[0x7f].write8  = m68k.memory_map[0x7e].write8  = mapper_flash_w8;
@@ -762,8 +789,45 @@ void md_cart_init(void)
       m68k.memory_map[i].read16   = NULL;
       m68k.memory_map[i].write8   = m68k_unused_8_w;
       m68k.memory_map[i].write16  = m68k_unused_16_w;
-      zbank_memory_map[i].read    = zbank_unused_r;
+      zbank_memory_map[i].read    = NULL;
       zbank_memory_map[i].write   = zbank_unused_w;
+    }
+  }
+  else if (sram.type >= FLASH_MEMORY) /* generic SGDK flash-save support */
+  {
+    int i;
+    int sram_start = sram.start>>16;
+    int sram_end = sram.end>>16;
+
+    /* initialize CFI flash memory hardware */
+    flash_cfi_init(sram.type - FLASH_MEMORY, NULL);
+
+    /* generic SGDK flash-save mapper (8MB ROM with backup RAM mapped to any 64KB bank, see https://gitlab.com/doragasu/sgdk-flash-save) */
+    for (i=0x00; i<0x80; i++)
+    {
+      /* Flash memory specific read/write access is only needed for first bank and SRAM banks */
+      if ((i == 0) || ((i >= sram_start) && (i <= sram_end)))
+      {
+        /* backup RAM initially mapped to SRAM start address bank */
+        m68k.memory_map[i].base     = (i != sram_start) ? (cart.rom + (i<<16)) : sram.sram;  
+        m68k.memory_map[i].read8    = mapper_flash_r8;
+        m68k.memory_map[i].read16   = mapper_flash_r16;
+        m68k.memory_map[i].write8   = mapper_flash_w8;
+        m68k.memory_map[i].write16  = mapper_flash_w16;
+        zbank_memory_map[i].read    = mapper_flash_r8;
+        zbank_memory_map[i].write   = mapper_flash_w8;
+      }
+      else
+      {
+        /* default ROM mapping */
+        m68k.memory_map[i].base     = cart.rom + (i<<16);
+        m68k.memory_map[i].read8    = NULL;
+        m68k.memory_map[i].read16   = NULL;
+        m68k.memory_map[i].write8   = m68k_unused_8_w;
+        m68k.memory_map[i].write16  = m68k_unused_16_w;
+        zbank_memory_map[i].read    = NULL;
+        zbank_memory_map[i].write   = zbank_unused_w;
+      }
     }
   }
   else if ((cart.romsize == 0x400000) && 

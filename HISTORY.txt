@@ -76,11 +76,12 @@ Genesis Plus GX 1.7.5 (xx/xx/xxxx) (Eke-Eke)
 * added support for new unlicensed games with copy protection
 * added support for Everdrive extended SSF mapper
 * added support for MegaSD CD hardware overlay (MD+ hacks) and extended SSF2 / ROM write mappers
+* added support for generic SGDK flash-save mapper (https://gitlab.com/doragasu/sgdk-flash-save)
 * added emulation of Z80 halt when accessing 68k bus during DMA from 68k bus
 * added emulation of 68k delay during Z80 acccess to 68k bus
 * added (basic) emulation of 68k bus refresh delays (fixes Super Airwolf graphical glitch during intro & some Krikzz's mcd-verificator timing tests)
-* added emulation of CFI-compliant flash memory hardware (used by some games for copy-protection and backup RAM support)
-* added emulation of YX5200 MP3 player (used by "The Secret of the Four Wings")
+* added emulation of CFI-compliant flash memory hardware (used by some unlicensed games for copy-protection and backup RAM support)
+* added emulation of YX5200 MP3 player (used by by some unlicensed games for enhanced audio playback)
 * added emulation of Micro Machines USA on-board TMSS bypass logic hardware
 * added SRAM support for games larger than 8MB
 * improved console region auto-detection for a few PAL-only games (The Smurfs Travel the World & Williams Arcade's Greatest Hits)
@@ -144,8 +145,9 @@ Genesis Plus GX 1.7.5 (xx/xx/xxxx) (Eke-Eke)
 
 [Core/IO]
 ---------------
-* added Sega Graphic Board support (thanks to SMS Power)
+* added Sega Graphic Board emulation (thanks to Bock & Maxim at SMS Power for prototype hardware reverse-engineering)
 * added Master Tap emulation (multi-player support in Boom homebrew)
+* added Innovation's Smash Controller emulation (thanks to Stanislav Simbirtsev for original hardware reverse-engineering)
 * added gamepad type auto-detection
 * added support for XE-1AP controller on both ports 
 * improved XE-1AP controller emulation
@@ -215,6 +217,7 @@ Genesis Plus GX 1.7.5 (xx/xx/xxxx) (Eke-Eke)
 * added configurable FPS display & toggleable fast-forward key combo
   (HOME + MINUS with Wii controllers or R TRIGGER + START with Gamecube controller)
 * added configurable menu key combo
+* added configurable analog sticks sensibility
 * added 50hz progressive mode (576p) support for emulation
 * added WiiU GamePad Controller support on vWii (Fix94)
 * added support for Sega CD / Mega-CD PRG-RAM and Word-RAM cheat codes
@@ -230,14 +233,14 @@ Genesis Plus GX 1.7.5 (xx/xx/xxxx) (Eke-Eke)
 * fixed low-pass filter menu setting
 * fixed random PNG snapshots corruption
 * various code cleanup & optimizations
-* built with devkitPPC r38, libogc 2.2.1 and libfat 1.1.5 with UStealth Mod
 
 [Gamecube]
 ---------------
 * improved progressive mode switch request on startup when component cable is detected
 * disabled simultaneous multiple .ogg files opening (fixes crashes caused to RAM size limitation)
 * fixed broken DVD support
-* added low-mem DOL version with dynamically allocated ROM buffer (fixes loading issues with Swiss or similar loaders using ARAM for temporary DOL storage)
+* added low-mem DOL version with dynamically allocated ROM buffer (fixes loading issues with loaders using ARAM for temporary DOL storage)
+* built with devkitPPC r47, libogc2 r2354.789670c and libdvm-extreme 9b3de4c (add exFAT support)
 
 [Wii]
 ---------------
@@ -247,26 +250,7 @@ Genesis Plus GX 1.7.5 (xx/xx/xxxx) (Eke-Eke)
 * added game auto-load support through DOL args (compatible with "Wiiflow" plugin arguments) 
 * fixed support for 3rd-party classic controllers with invalid calibration settings
 * increased maximal ROM size to 15MB
-
-[GCW0]
----------------
-* added GCW Zero port by Shin-NiL & David Knight (based on SDL port)
-
-[PSP2]
----------------
-* added PS VITA port by frangarcj
-
-[libretro]
----------------
-* added optional bootrom support for Master System, Game Gear & Mega Drive / Genesis
-* added support for all emulated devices (except Activator)
-* added support for in-game resolution changes through RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO
-* added support for .mdx ROM files
-* added missing core settings (system hardware, region, lock-on, multitap, master system FM,...)
-* fixed incorrect SRAM file saving
-* fixed framebuffer size for PAL interlaced mode
-* fixed viewport width when NTSC Filter is enabled with Mega Drive or Mega CD games using H-32 mode
-* code cleanup
+* built with devkitPPC r47, libogc 2.14.1 and libfat 1.2.0
 
 ---------------------------------------------------------------------------------------------------------
 Genesis Plus GX 1.7.4 (21/06/2013) (Eke-Eke)

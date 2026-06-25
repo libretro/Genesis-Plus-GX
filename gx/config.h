@@ -3,7 +3,7 @@
  *
  *  Genesis Plus GX configuration file support
  *
- *  Copyright Eke-Eke (2007-2022)
+ *  Copyright Eke-Eke (2007-2026)
  *
  *  Redistribution and use of this code or any derivative works are permitted
  *  provided that the following conditions are met:
@@ -40,7 +40,7 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
-#define CONFIG_VERSION "GENPLUS-GX 1.7.6"
+#define CONFIG_VERSION "GPGX 1.7.5 CF-01"
 
 /****************************************************************************
  * Config Option 
@@ -117,6 +117,7 @@ typedef struct
   uint8 bg_overlay;
   uint8 cd_leds;
   uint8 fps;
+  uint8 analog_sensitivity;
   int16 screen_w;
   float bgm_volume;
   float sfx_volume;

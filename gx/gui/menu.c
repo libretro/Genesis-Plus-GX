@@ -3,7 +3,7 @@
  *
  *  Genesis Plus GX menu
  *
- *  Copyright Eke-Eke (2009-2025)
+ *  Copyright Eke-Eke (2009-2026)
  *
  *  Redistribution and use of this code or any derivative works are permitted
  *  provided that the following conditions are met:
@@ -111,6 +111,7 @@
 #include "Ctrl_teamplayer_png.h"
 #include "Ctrl_mastertap_png.h"
 #include "Ctrl_graphic_board_png.h"
+#include "Ctrl_smash_controller_png.h"
 #include "Ctrl_pad_auto_png.h"
 #include "Ctrl_pad2b_png.h"
 #include "Ctrl_pad3b_png.h"
@@ -427,17 +428,18 @@ static gui_item items_video[] =
 /* Menu options */
 static gui_item items_prefs[] =
 {
-  {NULL,NULL,"Auto ROM Load: OFF",  "Enable/Disable automatic ROM loading on startup", 56,132,276,48},
-  {NULL,NULL,"Auto Cheats: OFF",    "Enable/Disable automatic cheats activation",      56,132,276,48},
-  {NULL,NULL,"Auto Saves: OFF",     "Enable/Disable automatic saves",                  56,132,276,48},
-  {NULL,NULL,"ROM Load Device: SD", "Configure default device for ROM files",          56,132,276,48},
-  {NULL,NULL,"Saves Device: FAT",   "Configure default device for Save files",         56,132,276,48},
-  {NULL,NULL,"SFX Volume: 100",     "Adjust sound effects volume",                     56,132,276,48},
-  {NULL,NULL,"BGM Volume: 100",     "Adjust background music volume",                  56,132,276,48},
-  {NULL,NULL,"BG Overlay: ON",      "Enable/Disable background overlay",               56,132,276,48},
-  {NULL,NULL,"Screen Width: 658",   "Adjust menu screen width in pixels",              56,132,276,48},
-  {NULL,NULL,"Show CD Leds: OFF",   "Enable/Disable CD leds display",                  56,132,276,48},
-  {NULL,NULL,"Show FPS: OFF",       "Enable/Disable FPS counter",                      56,132,276,48},
+  {NULL,NULL,"Auto ROM Load: OFF",      "Enable/Disable automatic ROM loading on startup", 56,132,276,48},
+  {NULL,NULL,"Auto Cheats: OFF",        "Enable/Disable automatic cheats activation",      56,132,276,48},
+  {NULL,NULL,"Auto Saves: OFF",         "Enable/Disable automatic saves",                  56,132,276,48},
+  {NULL,NULL,"ROM Load Device: SD",     "Configure default device for ROM files",          56,132,276,48},
+  {NULL,NULL,"Saves Device: FAT",       "Configure default device for Save files",         56,132,276,48},
+  {NULL,NULL,"SFX Volume: 100",         "Adjust sound effects volume",                     56,132,276,48},
+  {NULL,NULL,"BGM Volume: 100",         "Adjust background music volume",                  56,132,276,48},
+  {NULL,NULL,"BG Overlay: ON",          "Enable/Disable background overlay",               56,132,276,48},
+  {NULL,NULL,"Screen Width: 658",       "Adjust menu screen width in pixels",              56,132,276,48},
+  {NULL,NULL,"Show CD Leds: OFF",       "Enable/Disable CD leds display",                  56,132,276,48},
+  {NULL,NULL,"Show FPS: OFF",           "Enable/Disable FPS counter",                      56,132,276,48},
+  {NULL,NULL,"Analog Sensitivity: OFF", "Adjust analog sticks sensitivity (0-128)",        56,132,276,48},
 #ifdef HW_RVL
   {NULL,NULL,"Wiimote Timeout: OFF","Enable/Disable Wii remote automatic shutdown",    56,132,276,48},
   {NULL,NULL,"Wiimote Calibration: AUTO","Calibrate Wii remote pointer",               56,132,276,48},
@@ -708,6 +710,7 @@ static void update_bgm(void)
 static void prefmenu ()
 {
   int ret, quit = 0;
+  s16 analog_sensitivity = 128 - config.analog_sensitivity;
   gui_menu *m = &menu_prefs;
   gui_item *items = m->items;
   
@@ -733,13 +736,25 @@ static void prefmenu ()
   sprintf (items[8].text, "Screen Width: %d", config.screen_w);
   sprintf (items[9].text, "Show CD Leds: %s", config.cd_leds ? "ON":"OFF");
   sprintf (items[10].text, "Show FPS: %s", config.fps ? "ON":"OFF");
+  if (analog_sensitivity == 128)
+  {
+    sprintf (items[11].text, "Analog Sensitivity: MAX");
+  }
+  else if (analog_sensitivity == 0)
+  {
+    sprintf (items[11].text, "Analog Sensitivity: OFF");
+  }
+  else
+  {
+    sprintf (items[11].text, "Analog Sensitivity: %d", analog_sensitivity);
+  }
 #ifdef HW_RVL
-  sprintf (items[11].text, "Wiimote Timeout: %s", config.autosleep ? "5 MIN":"30 MIN");
-  sprintf (items[12].text, "Wiimote Calibration: %s", ((config.calx * config.caly) != 0) ? "MANUAL":"AUTO");
-  sprintf (items[12].comment, "%s", ((config.calx * config.caly) != 0) ? "Reset default Wii remote pointer calibration":"Calibrate Wii remote pointer");
-  m->max_items = 13;
+  sprintf (items[12].text, "Wiimote Timeout: %s", config.autosleep ? "5 MIN":"30 MIN");
+  sprintf (items[13].text, "Wiimote Calibration: %s", ((config.calx * config.caly) != 0) ? "MANUAL":"AUTO");
+  sprintf (items[13].comment, "%s", ((config.calx * config.caly) != 0) ? "Reset default Wii remote pointer calibration":"Calibrate Wii remote pointer");
+  m->max_items = 14;
 #else
-  m->max_items = 11;
+  m->max_items = 12;
 #endif
 
   GUI_InitMenu(m);
@@ -835,20 +850,37 @@ static void prefmenu ()
         sprintf (items[10].text, "Show FPS: %s", config.fps ? "ON":"OFF");
         break;
 
+      case 11:   /*** Analog sticks sensitivity ***/
+        GUI_OptionBox(m,0,"Analog Sensitivy",(void *)&analog_sensitivity,1,0,128,1);
+        if (analog_sensitivity == 128)
+        {
+          sprintf (items[11].text, "Analog Sensitivity: MAX");
+        }
+        else if (analog_sensitivity == 0)
+        {
+          sprintf (items[11].text, "Analog Sensitivity: OFF");
+        }
+        else
+        {
+          sprintf (items[11].text, "Analog Sensitivity: %d", analog_sensitivity);
+        }
+        config.analog_sensitivity = 128 - analog_sensitivity;
+        break;
+
 #ifdef HW_RVL
-      case 11:   /*** Wii remote auto switch-off ***/
+      case 12:   /*** Wii remote auto switch-off ***/
         config.autosleep ^= 1;
-        sprintf (items[11].text, "Wiimote Timeout: %s", config.autosleep ? "5min":"30min");
+        sprintf (items[12].text, "Wiimote Timeout: %s", config.autosleep ? "5min":"30min");
         WPAD_SetIdleTimeout(config.autosleep ? 300 : 1800);
         break;
 
-      case 12:   /*** Wii remote pointer calibration ***/
+      case 13:   /*** Wii remote pointer calibration ***/
         if ((config.calx * config.caly) == 0)
         {
           if (GUI_WaitConfirm("Pointer Calibration","Aim center of TV screen"))
           {
-            sprintf (items[12].text, "Wiimote Calibration: MANUAL");
-            sprintf (items[12].comment, "Reset default Wii remote pointer calibration");
+            sprintf (items[13].text, "Wiimote Calibration: MANUAL");
+            sprintf (items[13].comment, "Reset default Wii remote pointer calibration");
             config.calx = 320 - m_input.ir.x;
             config.caly = 240 - m_input.ir.y;
             m_input.ir.x = 320;
@@ -857,8 +889,8 @@ static void prefmenu ()
         }
         else
         {
-          sprintf (items[12].text, "Wiimote Calibration: AUTO");
-          sprintf (items[12].comment, "Calibrate Wii remote pointer");
+          sprintf (items[13].text, "Wiimote Calibration: AUTO");
+          sprintf (items[13].comment, "Calibrate Wii remote pointer");
           config.calx = config.caly = 0;
         }
         break;
@@ -876,8 +908,16 @@ static void prefmenu ()
 #ifdef HW_RVL
     DI_StopMotor();
 #else
-    dvdcmdblk blk;
-    DVD_StopMotor(&blk);
+    vu32* const dvd = (u32*)0xCC006000;
+    dvd[0] = 0x2e;
+    dvd[1] = 0;
+    dvd[2] = 0xe3000000;
+    dvd[3] = 0;
+    dvd[4] = 0;
+    dvd[5] = 0;
+    dvd[6] = 0;
+    dvd[7] = 1;
+    while (dvd[7] & 1);
 #endif
   }
 
@@ -2392,39 +2432,41 @@ static void ctrlmenu(void)
   u32 exp, index = 0;
 
   /* System devices */
-  gui_item items_sys[2][14] =
+  gui_item items_sys[2][15] =
   {
     {
-      {NULL,Ctrl_none_png           ,"","Select Port 1 device",110,130,48,72},
-      {NULL,Ctrl_gamepad_png        ,"","Select Port 1 device",100,109,68,92},
-      {NULL,Ctrl_mouse_png          ,"","Select Port 1 device", 97,113,64,88},
-      {NULL,Ctrl_menacer_png        ,"","Select Port 1 device", 94,113,80,88},
-      {NULL,Ctrl_justifiers_png     ,"","Select Port 1 device", 88,117,80,84},
-      {NULL,Ctrl_xe_1ap_png         ,"","Select Port 1 device", 98,118,72,84},
-      {NULL,Ctrl_activator_png      ,"","Select Port 1 device", 94,121,72,80},
-      {NULL,Ctrl_lightphaser_png    ,"","Select Port 1 device", 89,109,88,92},
-      {NULL,Ctrl_paddle_png         ,"","Select Port 1 device", 86,117,96,84},
-      {NULL,Ctrl_sportspad_png      ,"","Select Port 1 device", 95,117,76,84},
-      {NULL,Ctrl_graphic_board_png  ,"","Select Port 1 device", 90,105,88,96},
-      {NULL,Ctrl_mastertap_png      ,"","Select Port 1 device", 96,104,76,96},
-      {NULL,Ctrl_teamplayer_png     ,"","Select Port 1 device", 94,109,80,92},
-      {NULL,Ctrl_4wayplay_png       ,"","Select Port 1 device", 98,110,72,92}
+      {NULL,Ctrl_none_png             ,"","Select Port 1 device",110,130,48, 72},
+      {NULL,Ctrl_gamepad_png          ,"","Select Port 1 device",100,109,68, 92},
+      {NULL,Ctrl_mouse_png            ,"","Select Port 1 device", 97,113,64, 88},
+      {NULL,Ctrl_menacer_png          ,"","Select Port 1 device", 94,113,80, 88},
+      {NULL,Ctrl_justifiers_png       ,"","Select Port 1 device", 88,117,80, 84},
+      {NULL,Ctrl_xe_1ap_png           ,"","Select Port 1 device", 98,118,72, 84},
+      {NULL,Ctrl_activator_png        ,"","Select Port 1 device", 94,121,72, 80},
+      {NULL,Ctrl_lightphaser_png      ,"","Select Port 1 device", 89,109,88, 92},
+      {NULL,Ctrl_paddle_png           ,"","Select Port 1 device", 86,117,96, 84},
+      {NULL,Ctrl_sportspad_png        ,"","Select Port 1 device", 95,117,76, 84},
+      {NULL,Ctrl_graphic_board_png    ,"","Select Port 1 device", 90,105,88, 96},
+      {NULL,Ctrl_smash_controller_png ,"","Select Port 1 device", 94, 99,80,108},
+      {NULL,Ctrl_mastertap_png        ,"","Select Port 1 device", 96,104,76, 96},
+      {NULL,Ctrl_teamplayer_png       ,"","Select Port 1 device", 94,109,80, 92},
+      {NULL,Ctrl_4wayplay_png         ,"","Select Port 1 device", 98,110,72, 92}
     },
     {
-      {NULL,Ctrl_none_png           ,"","Select Port 2 device",110,300,48,72},
-      {NULL,Ctrl_gamepad_png        ,"","Select Port 2 device",100,279,68,92},
-      {NULL,Ctrl_mouse_png          ,"","Select Port 2 device", 97,283,64,88},
-      {NULL,Ctrl_menacer_png        ,"","Select Port 2 device", 94,283,80,88},
-      {NULL,Ctrl_justifiers_png     ,"","Select Port 2 device", 88,287,80,84},
-      {NULL,Ctrl_xe_1ap_png         ,"","Select Port 2 device", 98,288,72,84},
-      {NULL,Ctrl_activator_png      ,"","Select Port 2 device", 94,291,72,80},
-      {NULL,Ctrl_lightphaser_png    ,"","Select Port 2 device", 89,279,88,92},
-      {NULL,Ctrl_paddle_png         ,"","Select Port 2 device", 86,287,96,84},
-      {NULL,Ctrl_sportspad_png      ,"","Select Port 2 device", 95,287,76,84},
-      {NULL,Ctrl_graphic_board_png  ,"","Select Port 2 device", 90,275,88,96},
-      {NULL,Ctrl_mastertap_png      ,"","Select Port 1 device", 96,274,76,96},
-      {NULL,Ctrl_teamplayer_png     ,"","Select Port 2 device", 94,279,80,92},
-      {NULL,Ctrl_4wayplay_png       ,"","Select Port 2 device", 98,280,72,92}
+      {NULL,Ctrl_none_png             ,"","Select Port 2 device",110,300,48, 72},
+      {NULL,Ctrl_gamepad_png          ,"","Select Port 2 device",100,279,68, 92},
+      {NULL,Ctrl_mouse_png            ,"","Select Port 2 device", 97,283,64, 88},
+      {NULL,Ctrl_menacer_png          ,"","Select Port 2 device", 94,283,80, 88},
+      {NULL,Ctrl_justifiers_png       ,"","Select Port 2 device", 88,287,80, 84},
+      {NULL,Ctrl_xe_1ap_png           ,"","Select Port 2 device", 98,288,72, 84},
+      {NULL,Ctrl_activator_png        ,"","Select Port 2 device", 94,291,72, 80},
+      {NULL,Ctrl_lightphaser_png      ,"","Select Port 2 device", 89,279,88, 92},
+      {NULL,Ctrl_paddle_png           ,"","Select Port 2 device", 86,287,96, 84},
+      {NULL,Ctrl_sportspad_png        ,"","Select Port 2 device", 95,287,76, 84},
+      {NULL,Ctrl_graphic_board_png    ,"","Select Port 2 device", 90,275,88, 96},
+      {NULL,Ctrl_smash_controller_png ,"","Select Port 1 device", 94,269,80,108},
+      {NULL,Ctrl_mastertap_png        ,"","Select Port 1 device", 96,274,76, 96},
+      {NULL,Ctrl_teamplayer_png       ,"","Select Port 2 device", 94,279,80, 92},
+      {NULL,Ctrl_4wayplay_png         ,"","Select Port 2 device", 98,280,72, 92}
     }
   };    
 
@@ -2446,9 +2488,9 @@ static void ctrlmenu(void)
       {NULL,NULL,"","",0,0,0,0},
     },
     {
-      /* Gun option */
-      {NULL,ctrl_option_off_png,"Show\nCursor","Enable/Disable Lightgun cursor",534,180,24,24},
-      {NULL,ctrl_option_on_png ,"Show\nCursor","Enable/Disable Lightgun cursor",534,180,24,24},
+      /* Lightguns and Smash Controller option */
+      {NULL,ctrl_option_off_png,"Show\nCursor","Enable/Disable on-screen cursor",534,180,24,24},
+      {NULL,ctrl_option_on_png ,"Show\nCursor","Enable/Disable on-screen cursor",534,180,24,24},
       {NULL,NULL,"","",0,0,0,0},
       {NULL,NULL,"","",0,0,0,0},
     },
@@ -2490,7 +2532,7 @@ static void ctrlmenu(void)
   button_player_none_data.texture[0] = gxTextureOpenPNG(button_player_none_data.image[0],0);
 
   /* initialize custom images */
-  for (i=0; i<14; i++)
+  for (i=0; i<15; i++)
   {
     items_sys[1][i].texture = items_sys[0][i].texture = gxTextureOpenPNG(items_sys[0][i].data,0);
   }
@@ -2822,16 +2864,17 @@ static void ctrlmenu(void)
             }
 
             case DEVICE_LIGHTGUN:
+            case DEVICE_SMASH:
             {
               items = items_special[2];
               if ((input.system[1] == SYSTEM_MENACER) || (input.system[1] == SYSTEM_JUSTIFIER))
               {
-                /* Menacer & Justifiers affected to entries 4 & 5 */
+                /* Menacer & Justifiers assigned to entries 4 & 5 */
                 special = &config.gun_cursor[index & 1];
               }
               else
               {
-                /* Lightphasers affected to entries 0 & 4 */
+                /* Lightphasers and Smash Controllers assigned to entries 0 & 4 */
                 special = &config.gun_cursor[index / 4];
               }
               break;
@@ -3203,7 +3246,7 @@ static void ctrlmenu(void)
   gxTextureClose(&button_player_none_data.texture[0]);
 
   /* delete custom images */
-  for (i=0; i<14; i++)
+  for (i=0; i<15; i++)
   {
     gxTextureClose(&items_sys[0][i].texture);
   }
@@ -3721,26 +3764,35 @@ static void showrominfo (void)
 
   sprintf (items[11], "ROM end: $%06X", rominfo.romend);
 
-  if (sram.custom)
+  if (sram.type == EEPROM_I2C) 
+  {
     sprintf (items[12], "Serial EEPROM");
-  else if (sram.detected)
-    sprintf (items[12], "SRAM Start: $%06X", sram.start);
-  else
-    sprintf (items[12], "No Backup Memory specified");
-
-  if (sram.custom == 1) 
     sprintf (items[13], "Type: I2C (24Cxx)");
-  else if (sram.custom == 2) 
+  }
+  else if (sram.type == EEPROM_SPI) 
+  {
+    sprintf (items[12], "Serial EEPROM");
     sprintf (items[13], "Type: SPI (25x512/95x512)");
-  else if (sram.custom == 3) 
-    sprintf (items[13], "Type: I2C (93C46)");
+  }
+  else if (sram.type == EEPROM_MICROWIRE) 
+  {
+    sprintf (items[12], "Serial EEPROM");
+    sprintf (items[13], "Type: Microwire (93C46)");
+  }
   else if (sram.detected)
+  {
+    sprintf (items[12], "SRAM Start: $%06X", sram.start);
     sprintf (items[13], "SRAM End: $%06X", sram.end);
-  else if (sram.on)
-    sprintf (items[13], "SRAM enabled by default");
+  }
   else
-    sprintf (items[13], "SRAM disabled by default");
-  
+  {
+    sprintf (items[12], "No Backup Memory specified");
+    if (sram.on)
+      sprintf (items[13], "SRAM enabled by default");
+    else
+      sprintf (items[13], "SRAM disabled by default");
+  }
+
   if (region_code == REGION_USA)
     sprintf (items[14], "Region Code: %s (USA)", rominfo.country);
   else if (region_code == REGION_EUROPE)
@@ -3779,29 +3831,39 @@ static void showcredits(void)
     FONT_writeCenter("Blip Buffer Library & NTSC Video Filter by Shay Green (Blargg)", 18, 0, 640, 624 - offset, (GXColor)WHITE);
     FONT_writeCenter("3-Band EQ implementation by Neil C", 18, 0, 640, 642 - offset, (GXColor)WHITE);
     FONT_writeCenter("Ogg Vorbis 'Tremor' Library by Xiph.org Foundation", 18, 0, 640, 660 - offset, (GXColor)WHITE);
-    FONT_writeCenter("MINIMP3 Library by Lieff", 18, 0, 640, 678 - offset, (GXColor)WHITE);
-    FONT_writeCenter("CHD Library by Aaron Giles, Romain Tisserand", 18, 0, 640, 696 - offset, (GXColor)WHITE);
-    FONT_writeCenter("DR_FLAC Library by David Reid", 18, 0, 640, 714 - offset, (GXColor)WHITE);
-    FONT_writeCenter("ZLIB Library by Jean-loup Gailly & Mark Adler", 18, 0, 640, 732 - offset, (GXColor)WHITE);
-    FONT_writeCenter("LZMA Library by Igor Pavlov", 18, 0, 640, 750 - offset, (GXColor)WHITE);
-    FONT_writeCenter("ZSTD Library by Meta Platforms, Inc. and affiliates", 18, 0, 640, 768 - offset, (GXColor)WHITE);
+    FONT_writeCenter("MINIMP3 library by Lieff", 18, 0, 640, 678 - offset, (GXColor)WHITE);
+    FONT_writeCenter("CHD library by Aaron Giles, Romain Tisserand", 18, 0, 640, 696 - offset, (GXColor)WHITE);
+    FONT_writeCenter("DR_FLAC library by David Reid", 18, 0, 640, 714 - offset, (GXColor)WHITE);
+    FONT_writeCenter("ZLIB library by Jean-loup Gailly & Mark Adler", 18, 0, 640, 732 - offset, (GXColor)WHITE);
+    FONT_writeCenter("LZMA library by Igor Pavlov", 18, 0, 640, 750 - offset, (GXColor)WHITE);
+    FONT_writeCenter("ZSTD library by Meta Platforms, Inc. and affiliates", 18, 0, 640, 768 - offset, (GXColor)WHITE);
 
     FONT_writeCenter("Special thanks to ...", 20, 0, 640, 808 - offset, (GXColor)LIGHT_GREEN);
     FONT_writeCenter("Nemesis, Tasco Deluxe, Mask of Destiny, Bart Trzynadlowski, Haze,", 18, 0, 640, 844 - offset, (GXColor)WHITE);
     FONT_writeCenter("Jorge Cwik, Stef, Notaz, AamirM, Steve Snake, Charles MacDonald", 18, 0, 640, 862 - offset, (GXColor)WHITE);
     FONT_writeCenter("Spritesmind & SMS Power forums members for their technical help", 18, 0, 640, 880 - offset, (GXColor)WHITE);
 
-    FONT_writeCenter("Gamecube & Wii port", 24, 0, 640, 938 - offset, (GXColor)LIGHT_BLUE);
+#ifndef HW_RVL
+    FONT_writeCenter("Gamecube port", 24, 0, 640, 938 - offset, (GXColor)LIGHT_BLUE);
+#else
+    FONT_writeCenter("Wii port", 24, 0, 640, 938 - offset, (GXColor)LIGHT_BLUE);
+#endif
     FONT_writeCenter("porting code, GUI engine & design by Eke-Eke", 18, 0, 640, 974 - offset, (GXColor)WHITE);
     FONT_writeCenter("original Gamecube port by Softdev, Honkeykong & Markcube", 18, 0, 640, 992 - offset, (GXColor)WHITE);
     FONT_writeCenter("original icons, logo & button design by Low Lines", 18, 0, 640, 1010 - offset, (GXColor)WHITE);
     FONT_writeCenter("credit illustration by Orioto (Deviant Art)", 18, 0, 640, 1028 - offset, (GXColor)WHITE);
     FONT_writeCenter("memory card icon design by Brakken", 18, 0, 640, 1046 - offset, (GXColor)WHITE);
-    FONT_writeCenter("libogc by Shagkur & various other contibutors", 18, 0, 640, 1064 - offset, (GXColor)WHITE);
-    FONT_writeCenter("libfat by Chism", 18, 0, 640, 1082 - offset, (GXColor)WHITE);
+#ifndef HW_RVL
+    FONT_writeCenter("libOGC2 by Shagkur, Wintermute, Extrems & various other contibutors", 18, 0, 640, 1064 - offset, (GXColor)WHITE);
+    FONT_writeCenter("libDVM by fink, devkitpro team and Extrems", 18, 0, 640, 1082 - offset, (GXColor)WHITE);
+    offset += 36;
+#else
+    FONT_writeCenter("libOGC by Shagkur, Wintermute & various other contibutors", 18, 0, 640, 1064 - offset, (GXColor)WHITE);
+    FONT_writeCenter("libFAT by Chism and Wintermute", 18, 0, 640, 1082 - offset, (GXColor)WHITE);
     FONT_writeCenter("wiiuse by Michael Laforest (Para)", 18, 0, 640, 1100 - offset, (GXColor)WHITE);
-    FONT_writeCenter("asndlib & OGG player by Francisco Muñoz (Hermes)", 18, 0, 640, 1118 - offset, (GXColor)WHITE);
-    FONT_writeCenter("libwiidrc by Fix94", 18, 0, 640, 1136 - offset, (GXColor)WHITE);
+    FONT_writeCenter("libWiiDRC by Fix94", 18, 0, 640, 1118 - offset, (GXColor)WHITE);
+#endif
+    FONT_writeCenter("asndlib & OGG player by Francisco Muñoz (Hermes)", 18, 0, 640, 1136 - offset, (GXColor)WHITE);
     FONT_writeCenter("libpng by their respective authors", 18, 0, 640, 1154 - offset, (GXColor)WHITE);
     FONT_writeCenter("devkitPPC by Wintermute", 18, 0, 640, 1172 - offset, (GXColor)WHITE);
 
@@ -3817,6 +3879,10 @@ static void showcredits(void)
     offset ++;
     if (offset > 1302)
       offset = 0;
+#ifndef HW_RVL
+    else
+      offset -= 36;
+#endif
   }
 
   gxTextureClose(&texture);
