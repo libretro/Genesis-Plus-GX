@@ -26905,7 +26905,7 @@ struct retro_core_options_v2 options_fi = {
 #define OPTION_VAL_LEFT_BORDER_FR "Bordure de gauche uniquement"
 #define OPTION_VAL_LEFT_RIGHT_BORDERS_FR "Bordures gauche et droite"
 #define GENESIS_PLUS_GX_GG_EXTRA_LABEL_FR "Ecran étendu pour la Game Gear"
-#define GENESIS_PLUS_GX_GG_EXTRA_INFO_0_FR "Force les jeux Game Gear à fonctionner en mode SMS, avec une résolution accrue de 256x192. Peut afficher du contenu supplémentaire, mais affiche généralement une bordure de données d'image corrompues ou indésirables."
+#define GENESIS_PLUS_GX_GG_EXTRA_INFO_0_FR "Force les jeux Game Gear à fonctionner en mode SMS, avec une résolution accrue de 256 x 192. Peut afficher du contenu supplémentaire, mais affiche généralement une bordure de données d'image corrompues ou indésirables."
 #define GENESIS_PLUS_GX_BLARGG_NTSC_FILTER_LABEL_FR "Filtre NTSC de Blargg"
 #define GENESIS_PLUS_GX_BLARGG_NTSC_FILTER_INFO_0_FR "Applique un filtre vidéo pour imiter différents signaux TV NTSC."
 #define OPTION_VAL_MONOCHROME_FR NULL
@@ -26915,7 +26915,7 @@ struct retro_core_options_v2 options_fi = {
 #define GENESIS_PLUS_GX_LCD_FILTER_LABEL_FR "Filtre de rémanence LCD"
 #define GENESIS_PLUS_GX_LCD_FILTER_INFO_0_FR "Applique un filtre de 'rémanence' d'image pour imiter les caractéristiques d'écran de la Game Gear et des panneaux LCD de la Nomad."
 #define GENESIS_PLUS_GX_RENDER_LABEL_FR "Sortie Mode 2 entrelacée"
-#define GENESIS_PLUS_GX_RENDER_INFO_0_FR "Le Mode 2 entrelacé permet à la Mega Drive/Genesis de produire une image de hauteur doublée (haute résolution) à 320x448 en dessinant des lignes de balayage alternatives à chaque image (utilisé par les modes multi-joueurs de Sonic the Hedgehog 2 et Combat Cars). 'Double champ' imite le matériel original, produisant une image nette avec des artefacts de scintillement/entrelacement. 'Un seul champ' applique un filtre de désentrelacement, qui stabilise l'image mais provoque un flou léger."
+#define GENESIS_PLUS_GX_RENDER_INFO_0_FR "Le Mode 2 entrelacé permet à la Mega Drive/Genesis de produire une image de hauteur doublée (haute résolution) à 320 x 448 en dessinant des lignes de balayage alternatives à chaque image (utilisé par les modes multi-joueurs de Sonic the Hedgehog 2 et Combat Cars). 'Double champ' imite le matériel original, produisant une image nette avec des artefacts de scintillement/entrelacement. 'Un seul champ' applique un filtre de désentrelacement, qui stabilise l'image mais provoque un flou léger."
 #define OPTION_VAL_SINGLE_FIELD_FR "Un seul champ"
 #define OPTION_VAL_DOUBLE_FIELD_FR "Double champ"
 #define GENESIS_PLUS_GX_FRAMESKIP_LABEL_FR "Saut d'images"
@@ -66237,7 +66237,7 @@ struct retro_core_options_v2 options_val = {
 #define CATEGORY_AUDIO_LABEL_VN "Âm thanh"
 #define CATEGORY_AUDIO_INFO_0_VN "Thay đổi cài đặt thiết bị âm thanh."
 #define CATEGORY_INPUT_LABEL_VN "Đều khiển"
-#define CATEGORY_INPUT_INFO_0_VN "Thay đổi cài đặt nhập liệu súng ánh sáng và chuột."
+#define CATEGORY_INPUT_INFO_0_VN "Thay đổi cài đặt nhập liệu Súng quang và chuột."
 #define CATEGORY_HACKS_LABEL_VN "Thủ thuật giả lập"
 #define CATEGORY_HACKS_INFO_0_VN "Thay đổi cài đặt ép xung bộ xử lý và độ chính xác giả lập ảnh hưởng đến hiệu năng cấp thấp và khả năng tương thích."
 #define CATEGORY_CHANNEL_VOLUME_LABEL_VN "Tùy chỉnh cài đặt kênh âm thanh"
@@ -66363,7 +66363,7 @@ struct retro_core_options_v2 options_val = {
 #define GENESIS_PLUS_GX_AUDIO_EQ_HIGH_INFO_0_VN "Điều chỉnh dải cao của bộ cân bằng âm thanh nội bộ."
 #define GENESIS_PLUS_GX_GUN_INPUT_LABEL_VN NULL
 #define GENESIS_PLUS_GX_GUN_INPUT_INFO_0_VN "Sử dụng 'Súng ánh sang' điều khiển bằng chuột hoặc màn hình cảm ứng."
-#define OPTION_VAL_LIGHTGUN_VN "Súng ánh sáng"
+#define OPTION_VAL_LIGHTGUN_VN "Súng quang"
 #define OPTION_VAL_TOUCHSCREEN_VN "Màn hình cảm ứng"
 #define GENESIS_PLUS_GX_GUN_CURSOR_LABEL_VN NULL
 #define GENESIS_PLUS_GX_GUN_CURSOR_INFO_0_VN "Hiển thị tâm ngắm Light Gun khi dùng thiết bị MD Menacer, MD Justifiers và MS Light Phaser."
