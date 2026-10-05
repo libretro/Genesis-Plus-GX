@@ -184,12 +184,14 @@ void cd_cart_init(void)
   if (scd.cartridge.boot)
   {
     /* disable backup RAM cartridge when booting from cartridge (Mode 1) */
-    scd.cartridge.id = 0;
+    scd.cartridge.id = CD_CART_RAM_NONE;
   }
   else
   {
-    /* enable 512K backup RAM cartridge when booting from CD (Mode 2) */
-    scd.cartridge.id = cart_size;
+    /* enable backup RAM cartridge when booting from CD (Mode 2), unless the
+       frontend has switched it off: "disabled" sets cart_size to 0xff, which
+       must mean no cartridge rather than one with an ID of 0xff and no file */
+    scd.cartridge.id = (cart_size == CD_CART_RAM_DISABLED) ? CD_CART_RAM_NONE : cart_size;
   }
 
   /* RAM cartridge enabled ? */
