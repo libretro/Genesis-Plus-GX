@@ -133,4 +133,5 @@ RetroArch.app is installed, but gameplay, GPU shader rendering and the effect
 on the monitor are **unverified**. Successful compilation and synthetic checks
 do not establish the panel's compatibility with 3D.
 
-Looking Glass static quilt capture is documented in [LOOKING_GLASS.md](LOOKING_GLASS.md).
+For live Looking Glass output, see [RetroArch setup](RETROARCH_LOOKING_GLASS.md)
+or the [standalone GPU viewer](LIVE_LOOKING_GLASS.md).

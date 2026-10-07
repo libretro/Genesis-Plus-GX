@@ -73,8 +73,7 @@ whole-pixel depth rounding, and flat fallback for unsupported VDP modes.
 The Looking Glass picture contains the game; Quick Menu and overlays appear in
 RetroArch's ordinary window. A single middle view is read back for that window;
 the multiview quilt remains on the worker GPU; only the layer atlas crosses processes. GPU screenshots capture the normal
-RetroArch preview, not a complete quilt. The separate CPU capture mode remains
-available through the unwrapped core for quilt screenshots.
+RetroArch preview, not a complete quilt. Static CPU quilt capture is not provided.
 
 Verified on macOS arm64: C89-compatible adapter/core build; all 66 synthetic
 views and the preview matched a CPU reference, including vertical orientation;

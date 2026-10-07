@@ -104,11 +104,6 @@
 #define STEREO_LAYER_HEIGHT 704
 extern int stereo_live;
 extern int stereo_live_lut_ready;
-#define STEREO_QUILT_COLUMNS 8
-#define STEREO_QUILT_ROWS 6
-#define STEREO_MAX_VIEWS (STEREO_QUILT_COLUMNS * STEREO_QUILT_ROWS)
-#define STEREO_QUILT_PITCH (348 * STEREO_QUILT_COLUMNS)
-extern int stereo_views;
 extern int stereo_pitch;
 extern int stereo_enabled;
 extern int stereo_plane_a;

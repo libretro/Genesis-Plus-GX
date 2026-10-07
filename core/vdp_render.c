@@ -4864,7 +4864,6 @@ void render_reset(void)
 int stereo_live;
 int stereo_live_lut_ready;
 static int stereo_live_blank;
-int stereo_views = 2;
 int stereo_pitch = 696;
 int stereo_enabled;
 int stereo_plane_a = 2;
@@ -4872,7 +4871,7 @@ int stereo_plane_b;
 int stereo_sprites = 2;
 int stereo_swap;
 uint8 *stereo_data;
-static uint8 stereo_line[STEREO_MAX_VIEWS][0x200];
+static uint8 stereo_line[4][0x200];
 
 static uint8 stereo_pattern(uint16 attr, int x, int y)
 {
@@ -4923,12 +4922,8 @@ static uint8 stereo_plane(int plane, int x, int line)
 
 static int stereo_offset(int view, int depth)
 {
-  int denominator = stereo_views - 1;
-  int numerator;
-  if (stereo_swap) view = denominator - view;
-  numerator = (2 * view - denominator) * depth;
-  return numerator < 0 ? -((-numerator + denominator / 2) / denominator) :
-      (numerator + denominator / 2) / denominator;
+  if (stereo_swap) view = 1 - view;
+  return view ? depth : -depth;
 }
 
 static void stereo_render(int line, int masking)
@@ -4949,7 +4944,7 @@ static void stereo_render(int line, int masking)
   /* Enhanced column scrolling has a different fetch schedule. */
   if (!(reg[1] & 4) || render_bg == render_bg_m5_vs_enhanced)
   {
-    for (eye = 0; eye < stereo_views; eye++)
+    for (eye = 0; eye < (stereo_live ? 1 : 2); eye++)
       memcpy(stereo_line[eye], linebuf[0], sizeof(linebuf[0]));
     return;
   }
@@ -5007,7 +5002,7 @@ static void stereo_render(int line, int masking)
     return;
   }
 
-  for (eye = 0; eye < stereo_views; eye++)
+  for (eye = 0; eye < 2; eye++)
   {
     offset_a = stereo_offset(eye, stereo_plane_a);
     offset_b = stereo_offset(eye, stereo_plane_b);
@@ -5103,7 +5098,7 @@ void render_line(int line)
   {
     int view;
     stereo_live_blank = 1;
-    for (view = 0; view < stereo_views; view++)
+    for (view = 0; view < (stereo_live ? 1 : 2); view++)
       memcpy(stereo_line[view], linebuf[0], sizeof(linebuf[0]));
   }
 #endif
@@ -5118,7 +5113,7 @@ void blank_line(int line, int offset, int width)
   {
     int view;
     stereo_live_blank = 1;
-    for (view = 0; view < (stereo_live ? 4 : stereo_views); view++)
+    for (view = 0; view < (stereo_live ? 4 : 2); view++)
       memset(&stereo_line[view][0x20 + offset], 0x40, width);
   }
 #endif
@@ -5183,17 +5178,9 @@ void remap_line(int line)
       }
       return;
     }
-    for (eye = 0; eye < stereo_views; eye++)
+    for (eye = 0; eye < 2; eye++)
     {
-      int row = line;
-      int column = eye;
-      if (stereo_views > 2)
-      {
-        /* Quilt view zero is at the bottom left. */
-        row += (STEREO_QUILT_ROWS - 1 - eye / STEREO_QUILT_COLUMNS) * eye_height;
-        column = eye % STEREO_QUILT_COLUMNS;
-      }
-      out = (PIXEL_OUT_T *)stereo_data + row * stereo_pitch + column * width;
+      out = (PIXEL_OUT_T *)stereo_data + line * stereo_pitch + eye * width;
       for (x = 0; x < width; x++)
       {
         int active_x = x - bitmap.viewport.x;

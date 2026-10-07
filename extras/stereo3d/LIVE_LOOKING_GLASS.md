@@ -4,8 +4,7 @@ This standalone libretro frontend runs Genesis Plus GX once per frame. The core
 exports Plane A, Plane B, flattened sprites, Window, the per-line RGB565 palette
 and the original priority/shadow/highlight lookup tables as a 2048x704 integer
 atlas. OpenGL composes separate views before final mixing. Looking Glass Bridge
-receives the resulting GPU quilt texture directly; screenshots and CPU quilt
-capture are not involved. RetroArch is not required for this viewer. For RetroArch input, audio and saves,
+receives the resulting GPU quilt texture directly; screenshots are not involved. RetroArch is not required for this viewer. For RetroArch input, audio and saves,
 use the [native libretro adapter](RETROARCH_LOOKING_GLASS.md).
 
 The GPU texture uses the same top-down row layout as the SDK PNG uploader;
@@ -83,8 +82,7 @@ volumetric geometry. Depth offsets are artistic and not calibrated camera angles
 The frontend currently has keyboard input, reset and pause; it does not implement
 gamepads, save states, SRAM persistence or RetroArch menu integration.
 
-Checked without loading a ROM: macOS arm64 core build; existing SBS/quilt
-AddressSanitizer tests; GPU RGB output against CPU rendering for 32 synthetic
+Checked without loading a ROM: macOS arm64 core build; SBS AddressSanitizer tests; GPU RGB output against CPU rendering for 32 synthetic
 frames covering H32/H40, borders, Window, shadow/highlight, reversed/negative
 depths, interlace tile patterns and blanked lines; SDL2 silent audio queue ABI.
 GPU and CPU colors matched exactly. A synthetic 66-view GPU composition averaged
@@ -94,7 +92,7 @@ frame pacing, GPU composition and silent audio without running a game.
 On 2026-10-06, the user confirmed smooth live Sonic playback, clean audio and
 correct depth on the attached Looking Glass after the vertical orientation fix,
 using B=0, A=8, sprites=12 and reversed views. This confirms that setup, not every
-device or game. The RetroArch adapter requires a separate hardware test.
+device or game. The user also confirmed live video and audio through the RetroArch adapter.
 
 ## Layer atlas layout
 
