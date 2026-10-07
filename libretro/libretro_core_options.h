@@ -99,12 +99,14 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "genesis_plus_gx_stereo_3d",
       "Stereo 3D",
       NULL,
-      "Experimental Full Side-by-Side for Mega Drive/Genesis. Bypasses the NTSC filter. Enhanced column scrolling and non-Mode-5 display use identical eyes.",
+      "Experimental Full Side-by-Side or 48-view Looking Glass quilt for Mega Drive/Genesis. Quilt is a slow capture mode. GPU Layer Stream requires the experimental live viewer and is not a displayable image. Bypasses the NTSC filter. Enhanced column scrolling and non-Mode-5 display use identical eyes.",
       NULL,
       "video",
       {
          { "disabled", NULL },
-         { "enabled", NULL },
+         { "enabled", "Full Side-by-Side" },
+         { "quilt", "Looking Glass Quilt (8x6, 48 views)" },
+         { "layers", "GPU Layer Stream (live viewer)" },
          { NULL, NULL },
       },
       "disabled"

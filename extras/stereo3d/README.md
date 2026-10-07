@@ -102,9 +102,9 @@ within a single plane share the same assigned depth.
   retained for ordinary output. The lightgun cursor drawn by the frontend
   wrapper is not displayed in SBS. This mode primarily targets ordinary
   games played with a gamepad.
-- Full SBS is 512/640 pixels wide without horizontal overscan, or up to 688
+- Full SBS is 512/640 pixels wide without horizontal overscan, or up to 696
   with it. Heights follow the existing viewport, including interlace doubling.
-  The buffer is 688×576 with a 1376-byte RGB565 pitch. Geometry and maximum
+  The buffer is 696×576 with a 1392-byte RGB565 pitch. Geometry and maximum
   dimensions are updated through libretro on enable/disable and viewport changes.
 - When disabled, the original framebuffer and rendering path are used, with
   only inexpensive conditional checks added. Enabling stereo is significantly
@@ -132,3 +132,5 @@ VDP and geometry checks used temporary harnesses without a ROM or gameplay.
 RetroArch.app is installed, but gameplay, GPU shader rendering and the effect
 on the monitor are **unverified**. Successful compilation and synthetic checks
 do not establish the panel's compatibility with 3D.
+
+Looking Glass static quilt capture is documented in [LOOKING_GLASS.md](LOOKING_GLASS.md).

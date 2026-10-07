@@ -4861,13 +4861,18 @@ void render_reset(void)
 
 
 #ifdef __LIBRETRO__
+int stereo_live;
+int stereo_live_lut_ready;
+static int stereo_live_blank;
+int stereo_views = 2;
+int stereo_pitch = 696;
 int stereo_enabled;
 int stereo_plane_a = 2;
 int stereo_plane_b;
 int stereo_sprites = 2;
 int stereo_swap;
 uint8 *stereo_data;
-static uint8 stereo_line[2][0x200];
+static uint8 stereo_line[STEREO_MAX_VIEWS][0x200];
 
 static uint8 stereo_pattern(uint16 attr, int x, int y)
 {
@@ -4916,6 +4921,16 @@ static uint8 stereo_plane(int plane, int x, int line)
   return stereo_pattern(attr, sx, y);
 }
 
+static int stereo_offset(int view, int depth)
+{
+  int denominator = stereo_views - 1;
+  int numerator;
+  if (stereo_swap) view = denominator - view;
+  numerator = (2 * view - denominator) * depth;
+  return numerator < 0 ? -((-numerator + denominator / 2) / denominator) :
+      (numerator + denominator / 2) / denominator;
+}
+
 static void stereo_render(int line, int masking)
 {
   uint8 sprites[0x200];
@@ -4924,16 +4939,18 @@ static void stereo_render(int line, int masking)
   int pixels = 0;
   int masked = 0;
   int width = bitmap.viewport.w;
-  int i, x, eye, direction, source, a, b, c, s;
+  int i, x, eye, offset_a, offset_b, offset_s, source, a, b, c, s;
   int xpos, size, n, column, address, y;
   uint16 attr;
   uint8 *names;
 
+  stereo_live_blank = 0;
+
   /* Enhanced column scrolling has a different fetch schedule. */
   if (!(reg[1] & 4) || render_bg == render_bg_m5_vs_enhanced)
   {
-    memcpy(stereo_line[0], linebuf[0], sizeof(linebuf[0]));
-    memcpy(stereo_line[1], linebuf[0], sizeof(linebuf[0]));
+    for (eye = 0; eye < stereo_views; eye++)
+      memcpy(stereo_line[eye], linebuf[0], sizeof(linebuf[0]));
     return;
   }
 
@@ -4971,14 +4988,35 @@ static void stereo_render(int line, int masking)
     object++;
   }
 
-  for (eye = 0; eye < 2; eye++)
+  if (stereo_live)
   {
-    direction = (eye ^ stereo_swap) ? 1 : -1;
+    for (x = -16; x < width + 16; x++)
+    {
+      stereo_line[0][0x20 + x] = stereo_window(x, line) ? 0 : stereo_plane(0, x, line);
+      stereo_line[1][0x20 + x] = stereo_plane(1, x, line);
+      stereo_line[2][0x20 + x] = sprites[0x20 + x];
+      stereo_line[3][0x20 + x] = 0;
+      if (x >= 0 && x < width && stereo_window(x, line))
+      {
+        y = im2_flag ? line * 2 + odd_frame : line;
+        address = ntwb | ((y >> (im2_flag ? 4 : 3)) << (6 + (reg[12] & 1)));
+        attr = *(uint16 *)&vram[(address + (x >> 3) * 2) & 0xffff];
+        stereo_line[3][0x20 + x] = 0x80 | stereo_pattern(attr, x, y);
+      }
+    }
+    return;
+  }
+
+  for (eye = 0; eye < stereo_views; eye++)
+  {
+    offset_a = stereo_offset(eye, stereo_plane_a);
+    offset_b = stereo_offset(eye, stereo_plane_b);
+    offset_s = stereo_offset(eye, stereo_sprites);
     memset(stereo_line[eye], 0x40, sizeof(stereo_line[eye]));
     for (x = 0; x < width; x++)
     {
-      b = stereo_plane(1, x - direction * stereo_plane_b, line);
-      source = x - direction * stereo_plane_a;
+      b = stereo_plane(1, x - offset_b, line);
+      source = x - offset_a;
       a = stereo_window(source, line) ? 0 : stereo_plane(0, source, line);
       if (stereo_window(x, line))
       {
@@ -4988,7 +5026,7 @@ static void stereo_render(int line, int masking)
         a = stereo_pattern(attr, x, y);
       }
       c = lut[(reg[12] & 8) >> 2][(b << 8) | a];
-      s = sprites[0x20 + x - direction * stereo_sprites];
+      s = sprites[0x20 + x - offset_s];
       c = lut[(reg[12] & 8) ? 4 : 1][(c << 8) | s];
       stereo_line[eye][0x20 + x] = ((reg[0] & 0x20) && x < 8) ? 0x40 : c;
     }
@@ -5063,8 +5101,10 @@ void render_line(int line)
 #ifdef __LIBRETRO__
   if (stereo_enabled && !(reg[1] & 0x40))
   {
-    memcpy(stereo_line[0], linebuf[0], sizeof(linebuf[0]));
-    memcpy(stereo_line[1], linebuf[0], sizeof(linebuf[0]));
+    int view;
+    stereo_live_blank = 1;
+    for (view = 0; view < stereo_views; view++)
+      memcpy(stereo_line[view], linebuf[0], sizeof(linebuf[0]));
   }
 #endif
   /* Pixel color remapping */
@@ -5076,8 +5116,10 @@ void blank_line(int line, int offset, int width)
 #ifdef __LIBRETRO__
   if (stereo_enabled)
   {
-    memset(&stereo_line[0][0x20 + offset], 0x40, width);
-    memset(&stereo_line[1][0x20 + offset], 0x40, width);
+    int view;
+    stereo_live_blank = 1;
+    for (view = 0; view < (stereo_live ? 4 : stereo_views); view++)
+      memset(&stereo_line[view][0x20 + offset], 0x40, width);
   }
 #endif
   memset(&linebuf[0][0x20 + offset], 0x40, width);
@@ -5108,8 +5150,50 @@ void remap_line(int line)
   if (stereo_enabled)
   {
     int eye, x;
-    PIXEL_OUT_T *out = (PIXEL_OUT_T *)(stereo_data + line * 688 * sizeof(PIXEL_OUT_T));
-    for (eye = 0; eye < 2; eye++)
+    int eye_height = bitmap.viewport.h + 2 * bitmap.viewport.y;
+    PIXEL_OUT_T *out;
+    if (interlaced && config.render) eye_height *= 2;
+    if (stereo_live)
+    {
+      PIXEL_OUT_T *atlas = (PIXEL_OUT_T *)stereo_data;
+      PIXEL_OUT_T *row = atlas + line * STEREO_LAYER_WIDTH;
+      int table, index;
+      for (eye = 0; eye < 4; eye++)
+        for (x = 0; x < 352; x++)
+          row[eye * 352 + x] = stereo_line[eye][16 + x];
+      for (x = 0; x < 256; x++) row[1408 + x] = pixel[x];
+      row[1664] = width;
+      row[1665] = eye_height;
+      row[1666] = bitmap.viewport.x;
+      row[1667] = stereo_plane_a + 16;
+      row[1668] = stereo_plane_b + 16;
+      row[1669] = stereo_sprites + 16;
+      row[1670] = stereo_swap;
+      row[1671] = (reg[12] & 8) != 0;
+      row[1672] = stereo_live_blank || !(reg[1] & 0x40) || !(reg[1] & 4) ||
+          render_bg == render_bg_m5_vs_enhanced;
+      row[1673] = (reg[0] & 0x20) != 0;
+      if (!stereo_live_lut_ready)
+      {
+        for (table = 0; table < 4; table++)
+          for (index = 0; index < 65536; index++)
+            atlas[576 * STEREO_LAYER_WIDTH + table * 65536 + index] =
+                lut[table == 3 ? 4 : table][index];
+        stereo_live_lut_ready = 1;
+      }
+      return;
+    }
+    for (eye = 0; eye < stereo_views; eye++)
+    {
+      int row = line;
+      int column = eye;
+      if (stereo_views > 2)
+      {
+        /* Quilt view zero is at the bottom left. */
+        row += (STEREO_QUILT_ROWS - 1 - eye / STEREO_QUILT_COLUMNS) * eye_height;
+        column = eye % STEREO_QUILT_COLUMNS;
+      }
+      out = (PIXEL_OUT_T *)stereo_data + row * stereo_pitch + column * width;
       for (x = 0; x < width; x++)
       {
         int active_x = x - bitmap.viewport.x;
@@ -5118,6 +5202,7 @@ void remap_line(int line)
             ((reg[0] & 0x20) && active_x < 8)) color = 0x40;
         *out++ = pixel[color];
       }
+    }
     return;
   }
 #endif
