@@ -26977,23 +26977,23 @@ struct retro_core_options_v2 options_fi = {
 #define GENESIS_PLUS_GX_ENHANCED_VSCROLL_LIMIT_INFO_0_FR "Uniquement lorsque le défilement vertical par tile est activé. Ajuste la limite de l'amélioration du défilement vertical. Lorsque la différence de vscroll entre les tiles voisines est plus grande que cette limite, l'amélioration est désactivée."
 #define GENESIS_PLUS_GX_OVERCLOCK_LABEL_FR "Vitesse du processeur"
 #define GENESIS_PLUS_GX_OVERCLOCK_INFO_0_FR "Overclocker le processeur émulé. Peut réduire le ralentissement, mais peut causer des bugs."
-#define OPTION_VAL_100_FR NULL
-#define OPTION_VAL_125_FR NULL
-#define OPTION_VAL_150_FR NULL
-#define OPTION_VAL_175_FR NULL
-#define OPTION_VAL_200_FR NULL
-#define OPTION_VAL_225_FR NULL
-#define OPTION_VAL_250_FR NULL
-#define OPTION_VAL_275_FR NULL
-#define OPTION_VAL_300_FR NULL
-#define OPTION_VAL_325_FR NULL
-#define OPTION_VAL_350_FR NULL
-#define OPTION_VAL_375_FR NULL
-#define OPTION_VAL_400_FR NULL
-#define OPTION_VAL_425_FR NULL
-#define OPTION_VAL_450_FR NULL
-#define OPTION_VAL_475_FR NULL
-#define OPTION_VAL_500_FR NULL
+#define OPTION_VAL_100_FR "100 %"
+#define OPTION_VAL_125_FR "125 %"
+#define OPTION_VAL_150_FR "150 %"
+#define OPTION_VAL_175_FR "175 %"
+#define OPTION_VAL_200_FR "200 %"
+#define OPTION_VAL_225_FR "225 %"
+#define OPTION_VAL_250_FR "250 %"
+#define OPTION_VAL_275_FR "275 %"
+#define OPTION_VAL_300_FR "300 %"
+#define OPTION_VAL_325_FR "325 %"
+#define OPTION_VAL_350_FR "350 %"
+#define OPTION_VAL_375_FR "375 %"
+#define OPTION_VAL_400_FR "400 %"
+#define OPTION_VAL_425_FR "425 %"
+#define OPTION_VAL_450_FR "450 %"
+#define OPTION_VAL_475_FR "475 %"
+#define OPTION_VAL_500_FR "500 %"
 #define GENESIS_PLUS_GX_FORCE_DTACK_LABEL_FR "Blocages du système"
 #define GENESIS_PLUS_GX_FORCE_DTACK_INFO_0_FR "Émuler les blocages du système qui se produisent sur du vrai matériel lors d'un accès illégal aux adresses. Cela ne devrait être désactivé que lorsque vous jouez à certaines démos et homebrews qui dépendent d'un comportement illégal pour un fonctionnement correct."
 #define GENESIS_PLUS_GX_ADDR_ERROR_LABEL_FR "Erreur d'adresse 68K"
