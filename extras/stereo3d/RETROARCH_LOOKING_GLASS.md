@@ -1,126 +1,112 @@
 # Live Looking Glass in RetroArch (experimental, macOS)
 
-The native libretro adapter loads the modified Genesis Plus GX core inside
-RetroArch. One emulation pass produces a compact layer atlas. The adapter sends
-that atlas through a shared memory file to a separate Python Bridge worker.
-The worker composes device-profile views on the GPU and displays the quilt.
-Audio, controller input, save states and SRAM remain under RetroArch's control.
-The worker never loads a ROM or runs the emulator.
+The optional libretro adapter loads this modified Genesis Plus GX core inside
+RetroArch. One emulation pass produces a compact layer atlas. A GPU compositor
+builds the multiview quilt while audio, input, save states and SRAM remain under
+RetroArch's control. No RetroArch source changes are required.
 
-Bridge and RetroArch contain conflicting SDL/Cocoa classes on macOS. Keeping
-Bridge in a separate process avoids loading those duplicate classes into
-RetroArch. The worker uses the same GLFW OpenGL 4.1 context and compositor as
-the standalone viewer. The adapter has its own offscreen native Cocoa context
-for RetroArch's middle-view preview and restores the caller's context after
-rendering. RetroArch can keep its Metal driver. No RetroArch source is modified.
-
-The shared buffer holds the latest complete atlas; the worker skips older frames
-if rendering falls behind. A sequence counter rejects a frame copied during a
-producer update. Emulator timing and audio do not wait for the worker.
-
-## Build and launch on macOS
-
-From the repository root, build the ordinary core and adapter:
+## Worker output (default)
 
 ```sh
 sh extras/stereo3d/build_retroarch_looking_glass.sh
+sh extras/stereo3d/run_retroarch_looking_glass.sh "/absolute/path/to/game.md"
 ```
 
-Close the standalone live viewer and other Bridge examples, then launch:
+The isolated Python worker requires GLFW, NumPy, PyOpenGL and the Bridge Python
+SDK. Its default interpreter is `~/looking-glass-venv/bin/python`; override it
+with `GENESIS_LOOKING_GLASS_PYTHON`. The launcher waits for readiness and removes
+its shared atlas stream and worker on exit. Only the compact atlas crosses
+processes; the quilt is composed on the GPU.
+
+## Direct Metal output (opt-in)
+
+Build against an external Bridge SDK header directory containing `bridge.h`:
 
 ```sh
-sh extras/stereo3d/run_retroarch_looking_glass.sh \
-  "/absolute/path/to/your/game.md"
+GENESIS_LOOKING_GLASS_SDK_HEADERS="/path/to/BridgeRuntime" \
+  sh extras/stereo3d/build_retroarch_looking_glass.sh
+GENESIS_LOOKING_GLASS_MODE=metal \
+GENESIS_LOOKING_GLASS_MAX_FPS=30 \
+  sh extras/stereo3d/run_retroarch_looking_glass.sh "/absolute/path/to/game.md"
 ```
 
-The launcher uses the installed `/Applications/RetroArch.app`, Bridge 2.6.3,
-the core in this checkout and the existing RetroArch preferences copied into an
-isolated session config. Initial depth settings are B=0, A=8, sprites=12 and
-Swap Eyes enabled. It keeps a dedicated core-options file under
-`extras/stereo3d/.retroarch-live/`; subsequent launches preserve your depth edits.
-It disables shaders and CPU video filters for this session. The worker requires Python, GLFW, NumPy, PyOpenGL and the Bridge Python SDK,
-using the existing `~/looking-glass-venv/bin/python` by default. Set
-`GENESIS_LOOKING_GLASS_PYTHON` to use another prepared Python environment.
-Bridge supplies its own runtime libraries. The launcher starts the worker first,
-waits for readiness and stops only that worker when RetroArch exits.
+Metal mode needs the native adapter and Bridge runtime, without Python or a
+worker. Building without SDK headers preserves worker/legacy GL support and
+reports an error if Metal mode is selected. The physical test used Bridge 2.6.3
+and a separate macOS arm64 Metal/Cocoa RetroArch build without SDL. Select a
+custom executable with `RETROARCH_BIN`. SDL-free RetroArch is the tested setup,
+not an established requirement of the Metal API.
 
-Configure different locations with `RETROARCH_BIN`, `RETROARCH_CONFIG` and
-`GENESIS_LOOKING_GLASS_BRIDGE`. The launcher exports the underlying core and shader
-paths for the adapter. Launching the adapter directly without those environment
-variables will not load the underlying core.
+`GENESIS_LOOKING_GLASS_MAX_FPS` optionally caps quilt submissions between 1 and
+120 Hz. It does not change emulation or audio rates. Unset it for submission on
+every frame. On the tested Apple M4 setup, the user confirmed normal Sonic audio
+with the cap at 30 Hz; full-rate quilt composition caused audio interruptions.
+Lower panel update rates reduce motion smoothness. This is not a CoreAudio fix.
+Set `GENESIS_LOOKING_GLASS_PROFILE=1` for periodic GPU/SDK timing logs.
 
-In Quick Menu → Core Options, use Stereo 3D → Full Side-by-Side to enable this
-adapter's live output. The adapter translates enabled stereo output to the layer
-stream internally. Turning Stereo 3D off returns to the ordinary core's video.
-Adjust Plane A, Plane B, sprites and Swap Eyes there; no capture/restart is needed
-for depth changes. The Window plane stays at screen depth.
+The backend allocates one SDK-owned RGBA8 IOSurface Metal texture at the device's
+quilt dimensions. A compute shader writes the views directly into that texture,
+without an intermediate quilt copy. Source geometry changes do not reallocate
+it. The producer waits for GPU completion, restores the SDK's GL context,
+shows/pumps the window and submits the quilt once. The launcher disables
+pause-on-focus-loss in Metal mode.
 
-Use RetroArch's configured hotkey to open Quick Menu (usually F1, or Fn+F1 on a
-Mac); keyboard/gamepad mappings, pause, save/load state and SRAM use the standard
-RetroArch controls. Changes to the main RetroArch config should be made in a
-normal RetroArch session. This launch uses a copy so its video/filter/core-options
-settings do not replace your normal configuration. SRAM and state directories
-follow your normal settings; RetroArch may create a folder named
-`Genesis Plus GX Looking Glass`. Existing saves under another core's folder may
-need to be copied explicitly; the adapter does not move or migrate them.
+The legacy GL path (`GENESIS_LOOKING_GLASS_MODE=direct`) remains experimental:
+SDK calls succeeded, but subsequent physical tests showed no image. Do not
+interpret successful initialization as proof of panel output.
 
-## Supported scope and verification
+## Configuration and controls
 
-This adapter currently supports macOS desktop and software-rendered games in our
-modified Genesis Plus GX core. Other systems pass through ordinary core output.
-All Genesis stereo limitations remain: flat depth per plane/sprite group,
-whole-pixel depth rounding, and flat fallback for unsupported VDP modes.
-The Looking Glass picture contains the game; Quick Menu and overlays appear in
-RetroArch's ordinary window. A single middle view is read back for that window;
-the multiview quilt remains on the worker GPU; only the layer atlas crosses processes. GPU screenshots capture the normal
-RetroArch preview, not a complete quilt. Static CPU quilt capture is not provided.
+The launcher defaults to `/Applications/RetroArch.app`, Bridge 2.6.3 and the core
+in this checkout. Override locations with `RETROARCH_BIN`, `RETROARCH_CONFIG`
+and `GENESIS_LOOKING_GLASS_BRIDGE`. It copies the normal RetroArch configuration
+into an isolated session, selects Metal, disables shaders/CPU filters and keeps
+the frontend windowed. It raises the child's soft file limit to 4096 when needed.
+Installed applications and global settings are not changed.
 
-Verified on macOS arm64: C89-compatible adapter/core build; all 66 synthetic
-views and the preview matched a CPU reference, including vertical orientation;
-OpenGL host-context restoration; changing geometry; input/audio callback
-forwarding; reset; save-state round trips; SRAM access and cheat/region forwarding.
-An installed RetroArch 1.22.2 run used Metal and CoreAudio for 120 synthetic
-frames, saved the test SRAM successfully and unloaded cleanly. That integration
-test used a synthetic core and a mock Bridge, not a game or physical display.
-No ROM was loaded by the developer. Windows/Linux adapter builds are unsupported;
-RetroArch source and its CI-covered files were not changed.
+Initial depth settings are B=0, A=8, sprites=12 and Swap Eyes enabled. Subsequent
+launches preserve edits in `extras/stereo3d/.retroarch-live/core-options.cfg`.
+In Quick Menu → Core Options, Full Side-by-Side enables the adapter's layer
+stream internally; disabling Stereo 3D restores ordinary core video. Window
+stays at screen depth. Normal hotkeys, controllers, pause and saves still apply.
+SRAM/state paths follow your settings, possibly under `Genesis Plus GX Looking
+Glass`; existing saves are not migrated automatically.
 
-The user confirmed smooth Sonic, clean audio and correct depth in the standalone
-live viewer on 2026-10-06. The user also confirmed working live Sonic video and audio through the
-isolated RetroArch adapter on 2026-10-06. Quit and relaunch after a Bridge initialization/draw
-failure; detailed errors appear in the RetroArch message/log.
+The Looking Glass displays the game. Menus and overlays appear in RetroArch's
+window, which reads back a middle view. Metal mode composes only three GL views
+for that preview. The multiview quilt stays on the GPU. Static CPU quilt capture
+is not provided. Other systems retain ordinary core output; Genesis limitations
+include uniform depth per plane/sprite group, whole-pixel rounding and flat
+fallback for unsupported VDP modes.
 
-The native Cocoa context fix was additionally checked with the real Bridge
-2.6.3: the calibrated 1440x2560 panel window and 11x6 grid initialized, three
-synthetic frames were accepted, and the preview contained valid pixels. This
-checks the integration API, not the optical appearance of Sonic. The launcher
-now writes diagnostics to `.retroarch-live/retroarch.log`.
+## Validation and limits
 
-The corrected adapter also completed a 30-frame run inside installed RetroArch
-with the real Bridge and a synthetic core: the calibrated panel window
-initialized, the live grid was accepted, test SRAM was saved and both libraries
-unloaded cleanly. This API test did not establish physical output; see the subsequent user test below.
+The macOS arm64 core and C89 adapter builds passed. Twelve synthetic Metal
+quilts matched a CPU reference byte-for-byte, including geometry changes, eye
+swap, shadow/highlight, flat fallback, left blanking and Window selection. The
+fixture checked one target allocation, one SDK submission per rendered frame,
+release and shutdown. A separate check verified capped submissions resume after
+the interval. Existing GL tests checked host-context/viewport restoration and
+middle-view pixels, including when a mock SDK cleared the current context.
 
-The launcher raises an inherited soft open-file limit below 4096 to 4096 for
-the launched process. A user run exhausted its file descriptors (`dlopen`
-returned errno 24), preventing Bridge from loading. This adjustment affects
-only the launcher and child process; it does not change global macOS settings.
+The user confirmed moving synthetic frames on the physical panel in direct
+Metal mode. A 3600-frame synthetic run completed and closed the SDK. The user
+subsequently confirmed Sonic output and normal audio with the 30 Hz cap.
+Developer-run checks used synthetic data and loaded no ROM. The worker also
+passed a 120-frame real-Bridge synthetic test with shared-atlas verification,
+readiness and cleanup checks.
 
-The launcher keeps RetroArch windowed for the experimental two-window output,
-keeping the game viewport on the normal desktop. The adapter explicitly
-shows the Bridge window and sends initialization/failure messages through
-RetroArch's logging API as well as stderr.
+Testing covers one calibrated 1440×2560 Looking Glass using an 11×6 quilt.
+The SDK startup `GL_INVALID_ENUM` diagnostic remains. Producer completion is not
+a documented guarantee of SDK consumer completion. Windows/Linux adapters are
+unsupported. Quit and relaunch after a Bridge failure. Logs are in
+`.retroarch-live/retroarch.log` and, for worker mode, `.retroarch-live/bridge.log`.
 
-The in-process adapter initialized and accepted frames but did not produce a
-visible panel window in the user test. Initialization alone does not verify
-physical output. The isolated worker is the current launch path. The user subsequently
-confirmed both Sonic video and audio on the physical panel. Diagnostics are separate:
-`.retroarch-live/retroarch.log` for RetroArch and `.retroarch-live/bridge.log` for
-the worker. The worker reports `Ready: 11x6` (device dependent),
-`First layer frame received` and a running received-frame count.
+Run the synthetic Metal fixture with an external SDK header directory and a
+Python environment containing NumPy (no Bridge runtime or ROM is needed):
 
-The isolated path passed a synthetic 120-frame test with real Bridge 2.6.3:
-shared atlas bytes matched the producer, the middle preview matched the CPU
-reference, and callback/state/context checks passed. The launcher started the
-worker, received its readiness signal and first frame, and removed its temporary
-stream on exit. These tests loaded no ROM and do not verify optical output.
+```sh
+GENESIS_LOOKING_GLASS_SDK_HEADERS="/path/to/BridgeRuntime" \
+GENESIS_LOOKING_GLASS_PYTHON="/path/to/python" \
+  sh extras/stereo3d/tests/test_metal.sh
+```

@@ -13,6 +13,11 @@
 #include <OpenGL/gl3.h>
 #include "../../libretro/libretro-common/include/libretro.h"
 
+#ifdef HAVE_LOOKING_GLASS_METAL
+extern void *looking_glass_metal_open(const char *);
+extern bool looking_glass_metal_compose(void *, const uint16_t *);
+extern bool looking_glass_metal_close(void *);
+#endif
 extern void *looking_glass_context_current(void);
 extern void *looking_glass_context_create(void);
 extern void looking_glass_context_make_current(void *);
@@ -52,6 +57,7 @@ static uint16_t preview[348 * 576];
 
 static struct
 {
+   void *metal;
    uint32_t *stream;
    int stream_fd;
    void *context;
@@ -164,6 +170,10 @@ static void destroy_glass(void)
    if (glass.context)
    {
       looking_glass_context_make_current(glass.context);
+#ifdef HAVE_LOOKING_GLASS_METAL
+      if (glass.metal && !looking_glass_metal_close(glass.metal))
+         report_error("Looking Glass Metal shutdown failed; SDK session retained.");
+#endif
       if (glass.initialized)
          glass.uninitialize();
       looking_glass_context_make_current(glass.context);
@@ -222,7 +232,21 @@ static bool initialize_glass(void)
       goto error;
    looking_glass_context_make_current(glass.context);
    path = getenv("GENESIS_LOOKING_GLASS_STREAM");
-   if (path)
+   if (getenv("GENESIS_LOOKING_GLASS_MODE") &&
+         !strcmp(getenv("GENESIS_LOOKING_GLASS_MODE"), "metal"))
+   {
+      stage = "Metal Bridge";
+#ifdef HAVE_LOOKING_GLASS_METAL
+      glass.metal = looking_glass_metal_open(getenv("GENESIS_LOOKING_GLASS_BRIDGE"));
+#else
+      report_error("Build Metal support with GENESIS_LOOKING_GLASS_SDK_HEADERS.");
+#endif
+      if (!glass.metal)
+         goto error;
+      glass.columns = 3;
+      glass.rows = 1;
+   }
+   else if (path)
    {
       struct stat status;
       stage = "Bridge worker stream";
@@ -406,6 +430,10 @@ static bool compose(const uint16_t *frame)
       __atomic_store_n(&glass.stream[5], 1, __ATOMIC_RELEASE);
       result = glass.stream[1] == 1;
    }
+#ifdef HAVE_LOOKING_GLASS_METAL
+   else if (glass.metal)
+      result = looking_glass_metal_compose(glass.metal, frame);
+#endif
    else
       result = glass.draw(glass.window, glass.quilt, GL_RGBA, qw, qh,
             glass.columns, glass.rows, 4.0f / 3.0f, 1.0f);

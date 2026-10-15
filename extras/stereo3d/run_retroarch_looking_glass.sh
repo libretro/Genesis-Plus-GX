@@ -45,31 +45,41 @@ cat > "$config_dir/retroarch.cfg" <<CONFIG
 config_save_on_exit = "false"
 global_core_options = "true"
 core_options_path = "$config_dir/core-options.cfg"
+video_driver = "metal"
 video_fullscreen = "false"
 video_windowed_fullscreen = "false"
 video_shader_enable = "false"
 video_filter = ""
 CONFIG
-python=${GENESIS_LOOKING_GLASS_PYTHON:-"$HOME/looking-glass-venv/bin/python"}
-if [ ! -x "$python" ]; then
-  echo 'Set GENESIS_LOOKING_GLASS_PYTHON to Python with the live viewer dependencies.' >&2
-  exit 1
-fi
-export GENESIS_LOOKING_GLASS_STREAM=$(mktemp "$config_dir/atlas.XXXXXX")
-worker_pid=
-cleanup() {
-  if [ -n "$worker_pid" ]; then
-    kill "$worker_pid" 2>/dev/null || true
-    wait "$worker_pid" 2>/dev/null || true
-  fi
-  rm -f "$GENESIS_LOOKING_GLASS_STREAM"
-}
-trap cleanup EXIT
-trap 'exit 130' INT
-trap 'exit 143' TERM
-"$python" "$base/extras/stereo3d/retroarch_bridge_worker.py" "$GENESIS_LOOKING_GLASS_STREAM" > "$config_dir/bridge.log" 2>&1 &
-worker_pid=$!
-if ! "$python" - "$GENESIS_LOOKING_GLASS_STREAM" <<'READY'
+mode=${GENESIS_LOOKING_GLASS_MODE:-worker}
+case "$mode" in
+  direct|metal)
+    unset GENESIS_LOOKING_GLASS_STREAM
+    if [ "$mode" = metal ]; then
+      printf '%s\n' 'pause_nonactive = "false"' >> "$config_dir/retroarch.cfg"
+    fi
+    ;;
+  worker)
+    python=${GENESIS_LOOKING_GLASS_PYTHON:-"$HOME/looking-glass-venv/bin/python"}
+    if [ ! -x "$python" ]; then
+      echo 'Set GENESIS_LOOKING_GLASS_PYTHON to Python with the live viewer dependencies.' >&2
+      exit 1
+    fi
+    export GENESIS_LOOKING_GLASS_STREAM=$(mktemp "$config_dir/atlas.XXXXXX")
+    worker_pid=
+    cleanup() {
+      if [ -n "$worker_pid" ]; then
+        kill "$worker_pid" 2>/dev/null || true
+        wait "$worker_pid" 2>/dev/null || true
+      fi
+      rm -f "$GENESIS_LOOKING_GLASS_STREAM"
+    }
+    trap cleanup EXIT
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
+    "$python" "$base/extras/stereo3d/retroarch_bridge_worker.py" "$GENESIS_LOOKING_GLASS_STREAM" > "$config_dir/bridge.log" 2>&1 &
+    worker_pid=$!
+    if ! "$python" - "$GENESIS_LOOKING_GLASS_STREAM" <<'READY'
 import pathlib, struct, sys, time
 path = pathlib.Path(sys.argv[1])
 for _ in range(200):
@@ -84,10 +94,16 @@ for _ in range(200):
     time.sleep(0.1)
 sys.exit(1)
 READY
-then
-  cat "$config_dir/bridge.log" >&2
-  echo 'Bridge worker did not initialize; RetroArch was not started.' >&2
-  exit 1
-fi
+    then
+      cat "$config_dir/bridge.log" >&2
+      echo 'Bridge worker did not initialize; RetroArch was not started.' >&2
+      exit 1
+    fi
+    ;;
+  *)
+    echo 'GENESIS_LOOKING_GLASS_MODE must be worker, direct or metal.' >&2
+    exit 1
+    ;;
+esac
 "$retroarch" --verbose --log-file "$config_dir/retroarch.log" --config "$config_dir/session.cfg" --appendconfig "$config_dir/retroarch.cfg" \
   -L "$base/genesis_looking_glass_libretro.dylib" "$@"
