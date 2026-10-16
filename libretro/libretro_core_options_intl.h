@@ -15883,7 +15883,7 @@ struct retro_core_options_v2 options_da = {
 #define GENESIS_PLUS_GX_LCD_FILTER_LABEL_DE "LCD-Ghosting-Filter"
 #define GENESIS_PLUS_GX_LCD_FILTER_INFO_0_DE "Fügt einen 'Geisterbild'-Filter hinzu, um die Anzeigeeigenschaften der LCD-Bildschirme von Game Gear und Genesis Nomad nachzuahmen."
 #define GENESIS_PLUS_GX_RENDER_LABEL_DE "Interlaced Modus 2 Ausgabe"
-#define GENESIS_PLUS_GX_RENDER_INFO_0_DE "Der Interlaced Modus 2 erlaubt dem Mega Drive/Genesis eine Bildausgabe in doppelter Höhe (hohe Auflösung) von 320x448 durch Einfügen alternativer Scanlines in jedem Bild (dies wird von Sonic the Hedgehog 2 und Combat Cars im Multiplayer Modus verwendet). 'Doppelfeld' imitiert originale Hardware und erzeugt ein scharfes Bild mit Flicker/Interlacing-Artefakten. 'Einzelfeld' verwendet einen Deinterlacing-Filter, der das Bild stabilisiert, aber leicht verwischt."
+#define GENESIS_PLUS_GX_RENDER_INFO_0_DE "Der Interlaced Modus 2 erlaubt dem Mega Drive/Genesis eine Bildausgabe in doppelter Höhe (hohe Auflösung) von 320×448 durch Einfügen alternativer Scanlines in jedem Bild (dies wird von Sonic the Hedgehog 2 und Combat Cars im Multiplayer Modus verwendet). 'Doppelfeld' imitiert originale Hardware und erzeugt ein scharfes Bild mit Flicker/Interlacing-Artefakten. 'Einzelfeld' verwendet einen Deinterlacing-Filter, der das Bild stabilisiert, aber leicht verwischt."
 #define OPTION_VAL_SINGLE_FIELD_DE "Einzelfeld"
 #define OPTION_VAL_DOUBLE_FIELD_DE "Doppelfeld"
 #define GENESIS_PLUS_GX_FRAMESKIP_LABEL_DE NULL
@@ -15930,7 +15930,7 @@ struct retro_core_options_v2 options_da = {
 #define GENESIS_PLUS_GX_AUDIO_EQ_HIGH_LABEL_DE "EQ Hoch"
 #define GENESIS_PLUS_GX_AUDIO_EQ_HIGH_INFO_0_DE "Passt den hohen Bereich des internen Audio-Equalizers an."
 #define GENESIS_PLUS_GX_GUN_INPUT_LABEL_DE "Lightgun-Eingabe"
-#define GENESIS_PLUS_GX_GUN_INPUT_INFO_0_DE "Eine mausgesteuerte \"Lightgun\" oder eine \"Touchscreen\"-Eingabe verwenden."
+#define GENESIS_PLUS_GX_GUN_INPUT_INFO_0_DE "Eine mausgesteuerte „Lightgun“ oder eine „Touchscreen“-Eingabe verwenden."
 #define OPTION_VAL_LIGHTGUN_DE "Lightgun"
 #define OPTION_VAL_TOUCHSCREEN_DE NULL
 #define GENESIS_PLUS_GX_GUN_CURSOR_LABEL_DE "Lightgun-Fadenkreuz anzeigen"
