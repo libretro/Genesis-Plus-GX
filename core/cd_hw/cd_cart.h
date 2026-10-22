@@ -35,7 +35,20 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *
  ****************************************************************************************/
- 
+
+
+/* RAM cartridge ID (RAM size is 1 << (id + 13) bytes) */
+enum
+{
+  CD_CART_RAM_NONE    = 0,
+  CD_CART_RAM_128KBIT = 1,
+  CD_CART_RAM_256KBIT = 2,
+  CD_CART_RAM_512KBIT = 3,
+  CD_CART_RAM_1MBIT   = 4,
+  CD_CART_RAM_2MBIT   = 5,
+  CD_CART_RAM_4MBIT   = 6,
+  CD_CART_RAM_DISABLED = 0xff  /* frontend "disabled" setting (cart_size only) */
+};
 
  /* CD compatible ROM/RAM cartridge */
 typedef struct 

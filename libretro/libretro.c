@@ -1092,7 +1092,7 @@ static void bram_load(void)
     }
 
     /* automatically load cartridge backup RAM (if enabled) */
-    if (scd.cartridge.id)
+    if (scd.cartridge.id >= CD_CART_RAM_128KBIT && scd.cartridge.id <= CD_CART_RAM_4MBIT)
     {
       fp = filestream_open(CART_BRAM, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
       if (fp != NULL)
@@ -1174,7 +1174,7 @@ static void bram_save(void)
     }
 
     /* verify that cartridge backup RAM has been modified */
-    if (scd.cartridge.id && (crc32(0, scd.cartridge.area, scd.cartridge.mask + 1) != brm_crc[1]))
+    if (scd.cartridge.id >= CD_CART_RAM_128KBIT && scd.cartridge.id <= CD_CART_RAM_4MBIT && (crc32(0, scd.cartridge.area, scd.cartridge.mask + 1) != brm_crc[1]))
     {
       /* check if it is correctly formatted before saving */
       if (!memcmp(scd.cartridge.area + scd.cartridge.mask + 1 - 0x20, brm_format + 0x20, 0x20))
@@ -1409,19 +1409,19 @@ static void check_variables(bool first_run)
     environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
     {
       if (var.value && !strcmp(var.value, "disabled"))
-        cart_size = 0xff;
+        cart_size = CD_CART_RAM_DISABLED;
       else if (var.value && !strcmp(var.value, "128k"))
-        cart_size = 1;
+        cart_size = CD_CART_RAM_128KBIT;
       else if (var.value && !strcmp(var.value, "256k"))
-        cart_size = 2;
+        cart_size = CD_CART_RAM_256KBIT;
       else if (var.value && !strcmp(var.value, "512k"))
-        cart_size = 3;
+        cart_size = CD_CART_RAM_512KBIT;
       else if (var.value && !strcmp(var.value, "1meg"))
-        cart_size = 4;
+        cart_size = CD_CART_RAM_1MBIT;
       else if (var.value && !strcmp(var.value, "2meg"))
-        cart_size = 5;
+        cart_size = CD_CART_RAM_2MBIT;
       else if (var.value && !strcmp(var.value, "4meg"))
-        cart_size = 6;
+        cart_size = CD_CART_RAM_4MBIT;
     }
   }
 
@@ -1430,68 +1430,68 @@ static void check_variables(bool first_run)
     var.key = "genesis_plus_gx_cart_bram";
     environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var);
     {
-      if ((!var.value || !strcmp(var.value, "per cart")) && cart_size == 1)
+      if ((!var.value || !strcmp(var.value, "per cart")) && cart_size == CD_CART_RAM_128KBIT)
          {
            fill_pathname_join(CART_BRAM, save_dir, "128Kbit_cart.brm", sizeof(CART_BRAM));
          }
-      else if ((!var.value || !strcmp(var.value, "per cart")) && cart_size == 2)
+      else if ((!var.value || !strcmp(var.value, "per cart")) && cart_size == CD_CART_RAM_256KBIT)
          {
            fill_pathname_join(CART_BRAM, save_dir, "256Kbit_cart.brm", sizeof(CART_BRAM));
          }
-      else if ((!var.value || !strcmp(var.value, "per cart")) && cart_size == 3)
+      else if ((!var.value || !strcmp(var.value, "per cart")) && cart_size == CD_CART_RAM_512KBIT)
          {
            fill_pathname_join(CART_BRAM, save_dir, "512Kbit_cart.brm", sizeof(CART_BRAM));
          }
-      else if ((!var.value || !strcmp(var.value, "per cart")) && cart_size == 4)
+      else if ((!var.value || !strcmp(var.value, "per cart")) && cart_size == CD_CART_RAM_1MBIT)
          {
            fill_pathname_join(CART_BRAM, save_dir, "1Mbit_cart.brm", sizeof(CART_BRAM));
          }
-      else if ((!var.value || !strcmp(var.value, "per cart")) && cart_size == 5)
+      else if ((!var.value || !strcmp(var.value, "per cart")) && cart_size == CD_CART_RAM_2MBIT)
          {
            fill_pathname_join(CART_BRAM, save_dir, "2Mbit_cart.brm", sizeof(CART_BRAM));
          }
-      else if ((!var.value || !strcmp(var.value, "per cart")) && cart_size == 6)
+      else if ((!var.value || !strcmp(var.value, "per cart")) && cart_size == CD_CART_RAM_4MBIT)
          {
            fill_pathname_join(CART_BRAM, save_dir, "4Mbit_cart.brm", sizeof(CART_BRAM));
          }
       else
       {
-      if (cart_size == 1)
+      if (cart_size == CD_CART_RAM_128KBIT)
          { 
            char newpath[4096];
            fill_pathname_join(newpath, save_dir, g_rom_name, sizeof(newpath));
            strlcat(newpath, "_128Kbit_cart.brm", sizeof(newpath));
            strlcpy(CART_BRAM, newpath, sizeof(CART_BRAM));
          }
-      else if (cart_size == 2)
+      else if (cart_size == CD_CART_RAM_256KBIT)
          { 
            char newpath[4096];
            fill_pathname_join(newpath, save_dir, g_rom_name, sizeof(newpath));
            strlcat(newpath, "_256Kbit_cart.brm", sizeof(newpath));
            strlcpy(CART_BRAM, newpath, sizeof(CART_BRAM));
          }
-      else if (cart_size == 3)
+      else if (cart_size == CD_CART_RAM_512KBIT)
          { 
            char newpath[4096];
            fill_pathname_join(newpath, save_dir, g_rom_name, sizeof(newpath));
            strlcat(newpath, "_512Kbit_cart.brm", sizeof(newpath));
            strlcpy(CART_BRAM, newpath, sizeof(CART_BRAM));
          }
-      else if (cart_size == 4)
+      else if (cart_size == CD_CART_RAM_1MBIT)
          { 
            char newpath[4096];
            fill_pathname_join(newpath, save_dir, g_rom_name, sizeof(newpath));
            strlcat(newpath, "_1Mbit_cart.brm", sizeof(newpath));
            strlcpy(CART_BRAM, newpath, sizeof(CART_BRAM));
          }
-      else if (cart_size == 5)
+      else if (cart_size == CD_CART_RAM_2MBIT)
          { 
            char newpath[4096];
            fill_pathname_join(newpath, save_dir, g_rom_name, sizeof(newpath));
            strlcat(newpath, "_2Mbit_cart.brm", sizeof(newpath));
            strlcpy(CART_BRAM, newpath, sizeof(CART_BRAM));
          }
-      else if (cart_size == 6)
+      else if (cart_size == CD_CART_RAM_4MBIT)
          { 
            char newpath[4096];
            fill_pathname_join(newpath, save_dir, g_rom_name, sizeof(newpath));
