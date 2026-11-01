@@ -169,6 +169,13 @@ ifneq (,$(findstring unix,$(platform)))
       endif
    endif
    
+   # 32-bit ARM traps on unaligned STRD/STM, which GCC merges from the VDP renderer's uint32 stores
+   ifneq (,$(filter-out arm64%,$(filter arm%,$(shell $(CC) -dumpmachine))))
+      ifeq (,$(findstring -DALIGN_LONG,$(ENDIANNESS_DEFINES)))
+         ENDIANNESS_DEFINES += -DALIGN_LONG
+      endif
+   endif
+
 # (armv8 a35, hard point, neon based) ###
 # Playstation Classic
 else ifeq ($(platform), classic_armv8_a35)
