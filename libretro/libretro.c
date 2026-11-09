@@ -269,8 +269,7 @@ static void init_frameskip(void)
       if (!environ_cb(RETRO_ENVIRONMENT_SET_AUDIO_BUFFER_STATUS_CALLBACK,
             &buf_status_cb))
       {
-         if (log_cb)
-            log_cb(RETRO_LOG_WARN, "Frameskip disabled - frontend does not support audio buffer status monitoring.\n");
+         log_cb(RETRO_LOG_WARN, "Frameskip disabled - frontend does not support audio buffer status monitoring.\n");
 
          retro_audio_buff_active    = false;
          retro_audio_buff_occupancy = 0;
@@ -324,8 +323,7 @@ void error(char * fmt, ...)
    va_list ap;
    va_start(ap, fmt);
    vsprintf(buffer, fmt, ap);
-   if (log_cb)
-      log_cb(RETRO_LOG_ERROR, "%s\n", buffer);
+   log_cb(RETRO_LOG_ERROR, "%s\n", buffer);
    va_end(ap);
 }
 
@@ -391,7 +389,7 @@ int load_archive(char *filename, unsigned char *buffer, int maxsize, char *exten
   }
 
   /* Open file */
-  fd    = filestream_open(filename, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+  fd = filestream_open(filename, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
 
   if (!fd)
   {
@@ -404,13 +402,11 @@ int load_archive(char *filename, unsigned char *buffer, int maxsize, char *exten
     /* Mega CD BIOS are required files */
     if (!strcmp(filename,CD_BIOS_US) || !strcmp(filename,CD_BIOS_EU) || !strcmp(filename,CD_BIOS_JP)) 
     {
-       if (log_cb)
-          log_cb(RETRO_LOG_ERROR, "Unable to open CD BIOS: \"%s\".\n", filename);
-       return 0;
+      log_cb(RETRO_LOG_ERROR, "Unable to open CD BIOS: \"%s\".\n", filename);
+      return 0;
     }
 
-    if (log_cb)
-       log_cb(RETRO_LOG_ERROR, "Unable to open file.\n");
+    log_cb(RETRO_LOG_ERROR, "Unable to open file.\n");
     return 0;
   }
 
@@ -430,8 +426,7 @@ int load_archive(char *filename, unsigned char *buffer, int maxsize, char *exten
   else if (size > maxsize)
     size = maxsize;
 
-  if (log_cb)
-    log_cb(RETRO_LOG_INFO, "Loading %d bytes ...\n", size);
+  log_cb(RETRO_LOG_INFO, "Loading %d bytes...\n", size);
 
   /* Read into buffer */
   left = size;
@@ -3104,7 +3099,7 @@ void retro_set_environment(retro_environment_t cb)
    vfs_iface_info.required_interface_version = 2;
    vfs_iface_info.iface                      = NULL;
    if (environ_cb(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &vfs_iface_info))
-	   filestream_vfs_init(&vfs_iface_info);
+      filestream_vfs_init(&vfs_iface_info);
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_LED_INTERFACE, &led_interface)) {
       if (led_interface.set_led_state && !led_state_cb)
@@ -3487,9 +3482,8 @@ bool retro_load_game(const struct retro_game_info *info)
 #ifdef FRONTEND_SUPPORTS_RGB565
    {
       unsigned rgb565 = RETRO_PIXEL_FORMAT_RGB565;
-      if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &rgb565))
-         if (log_cb)
-            log_cb(RETRO_LOG_INFO, "Frontend supports RGB565 - will use that instead of XRGB1555.\n");
+      if (environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &rgb565))
+         log_cb(RETRO_LOG_INFO, "Frontend supports RGB565 - will use that instead of XRGB1555.\n");
    }
 #endif
 
@@ -3501,15 +3495,13 @@ bool retro_load_game(const struct retro_game_info *info)
 
    if (!environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) || !dir)
    {
-      if (log_cb)
-         log_cb(RETRO_LOG_INFO, "[genplus]: Defaulting system directory to %s.\n", g_rom_dir);
+      log_cb(RETRO_LOG_INFO, "Defaulting system directory to \"%s\".\n", g_rom_dir);
       dir = g_rom_dir;
    }
 
    if (!environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &save_dir) || !save_dir)
    {
-      if (log_cb)
-         log_cb(RETRO_LOG_INFO, "[genplus]: Defaulting save directory to %s.\n", g_rom_dir);
+      log_cb(RETRO_LOG_INFO, "Defaulting save directory to \"%s\".\n", g_rom_dir);
       save_dir = g_rom_dir;
    }
 
@@ -3528,25 +3520,22 @@ bool retro_load_game(const struct retro_game_info *info)
  
    check_variables(true);
 
-   if (log_cb)
-   {
-      log_cb(RETRO_LOG_DEBUG, "Game Genie ROM should be located at: %s\n", GG_ROM);
-      log_cb(RETRO_LOG_DEBUG, "Action Replay (Pro) ROM should be located at: %s\n", AR_ROM);
-      log_cb(RETRO_LOG_DEBUG, "Sonic & Knuckles (2 MB) ROM should be located at: %s\n", SK_ROM);
-      log_cb(RETRO_LOG_DEBUG, "Sonic & Knuckles UPMEM (256 KB) ROM should be located at: %s\n", SK_UPMEM);
-      log_cb(RETRO_LOG_DEBUG, "Mega Drive TMSS BOOTROM should be located at: %s\n", MD_BIOS);
-      log_cb(RETRO_LOG_DEBUG, "Game Gear TMSS BOOTROM should be located at: %s\n", GG_BIOS);
-      log_cb(RETRO_LOG_DEBUG, "Master System (PAL) BOOTROM should be located at: %s\n", MS_BIOS_EU);
-      log_cb(RETRO_LOG_DEBUG, "Master System (NTSC-U) BOOTROM should be located at: %s\n", MS_BIOS_US);
-      log_cb(RETRO_LOG_DEBUG, "Master System (NTSC-J) BOOTROM should be located at: %s\n", MS_BIOS_JP);
-      log_cb(RETRO_LOG_DEBUG, "Mega CD (PAL) BIOS should be located at: %s\n", CD_BIOS_EU);
-      log_cb(RETRO_LOG_DEBUG, "Sega CD (NTSC-U) BIOS should be located at: %s\n", CD_BIOS_US);
-      log_cb(RETRO_LOG_DEBUG, "Mega CD (NTSC-J) BIOS should be located at: %s\n", CD_BIOS_JP);
-      log_cb(RETRO_LOG_DEBUG, "Mega CD (PAL) BRAM is located at: %s\n", CD_BRAM_EU);
-      log_cb(RETRO_LOG_DEBUG, "Sega CD (NTSC-U) BRAM is located at: %s\n", CD_BRAM_US);
-      log_cb(RETRO_LOG_DEBUG, "Mega CD (NTSC-J) BRAM is located at: %s\n", CD_BRAM_JP);
-      log_cb(RETRO_LOG_DEBUG, "Sega/Mega CD RAM CART is located at: %s\n", CART_BRAM);
-   }
+   log_cb(RETRO_LOG_DEBUG, "Game Genie ROM should be located at: \"%s\".\n", GG_ROM);
+   log_cb(RETRO_LOG_DEBUG, "Action Replay (Pro) ROM should be located at: \"%s\".\n", AR_ROM);
+   log_cb(RETRO_LOG_DEBUG, "Sonic & Knuckles (2 MB) ROM should be located at: \"%s\".\n", SK_ROM);
+   log_cb(RETRO_LOG_DEBUG, "Sonic & Knuckles UPMEM (256 KB) ROM should be located at: \"%s\".\n", SK_UPMEM);
+   log_cb(RETRO_LOG_DEBUG, "Mega Drive TMSS BOOTROM should be located at: \"%s\".\n", MD_BIOS);
+   log_cb(RETRO_LOG_DEBUG, "Game Gear TMSS BOOTROM should be located at: \"%s\".\n", GG_BIOS);
+   log_cb(RETRO_LOG_DEBUG, "Master System (PAL) BOOTROM should be located at: \"%s\".\n", MS_BIOS_EU);
+   log_cb(RETRO_LOG_DEBUG, "Master System (NTSC-U) BOOTROM should be located at: \"%s\".\n", MS_BIOS_US);
+   log_cb(RETRO_LOG_DEBUG, "Master System (NTSC-J) BOOTROM should be located at: \"%s\".\n", MS_BIOS_JP);
+   log_cb(RETRO_LOG_DEBUG, "Mega CD (PAL) BIOS should be located at: \"%s\".\n", CD_BIOS_EU);
+   log_cb(RETRO_LOG_DEBUG, "Sega CD (NTSC-U) BIOS should be located at: \"%s\".\n", CD_BIOS_US);
+   log_cb(RETRO_LOG_DEBUG, "Mega CD (NTSC-J) BIOS should be located at: \"%s\".\n", CD_BIOS_JP);
+   log_cb(RETRO_LOG_DEBUG, "Mega CD (PAL) BRAM is located at: \"%s\".\n", CD_BRAM_EU);
+   log_cb(RETRO_LOG_DEBUG, "Sega CD (NTSC-U) BRAM is located at: \"%s\".\n", CD_BRAM_US);
+   log_cb(RETRO_LOG_DEBUG, "Mega CD (NTSC-J) BRAM is located at: \"%s\".\n", CD_BRAM_JP);
+   log_cb(RETRO_LOG_DEBUG, "Sega/Mega CD RAM CART is located at: \"%s\".\n", CART_BRAM);
 
    /* Clear disk interface (already done in retro_unload_game but better be safe) */
    disk_count = 0;
@@ -3597,12 +3586,12 @@ bool retro_load_game(const struct retro_game_info *info)
                      /* add file to disk interface */
                      sprintf(disk_info[disk_count], "%s%c%s", g_rom_dir, slash, linebuf);
                      disk_count++;
-                     if (log_cb)
-                       log_cb(RETRO_LOG_INFO, "Disk #%d added from M3U file list: %s\n", disk_count, disk_info[disk_count-1]);
+                     log_cb(RETRO_LOG_INFO, "Disk #%d added from M3U file list: \"%s\".\n", disk_count, disk_info[disk_count-1]);
                   }
                }
             }
          }
+         filestream_close(fd);
       }
 
       /* automatically try to load first disk if at least one file was added to disk interface from M3U file list */
@@ -3610,8 +3599,7 @@ bool retro_load_game(const struct retro_game_info *info)
       {
          if (!load_rom(disk_info[0]))
          {
-            if (log_cb)
-               log_cb(RETRO_LOG_ERROR, "Could not load %s from M3U file list\n", disk_info[0]);
+            log_cb(RETRO_LOG_ERROR, "Could not load \"%s\" from M3U file list.\n", disk_info[0]);
 
             /* clear initialized disk interface before returning an error */
             for (i=0; i<disk_count; i++)
@@ -3713,7 +3701,7 @@ bool retro_load_game_special(unsigned game_type, const struct retro_game_info *i
 
 void retro_unload_game(void) 
 {
-	/* Clear disk interface */
+   /* Clear disk interface */
    int i;
    disk_count = 0;
    disk_index = 0;
@@ -3813,6 +3801,15 @@ static void check_system_specs(void)
    environ_cb(RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, &level);
 }
 
+static void fallback_log(enum retro_log_level level, const char *fmt, ...)
+{
+   (void)level;
+   va_list va;
+   va_start(va, fmt);
+   vfprintf(stderr, fmt, va);
+   va_end(va);
+}
+
 void retro_init(void)
 {
    struct retro_log_callback log;
@@ -3821,10 +3818,9 @@ void retro_init(void)
 
    environ_cb(RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, &level);
 
+   log_cb = fallback_log;
    if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log))
       log_cb = log.log;
-   else
-      log_cb = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, NULL))
       libretro_supports_bitmasks = true;

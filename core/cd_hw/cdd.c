@@ -428,7 +428,7 @@ int cdd_load(char *filename, char *header)
 #ifdef __LIBRETRO__
     if (config.cd_precache)
     {
-      log_cb(RETRO_LOG_INFO, "Pre-caching \"%s\" ...\n", filename);
+      log_cb(RETRO_LOG_INFO, "Pre-caching \"%s\"...\n", filename);
       if (chd_precache(cdd.chd.file) != CHDERR_NONE)
         return -1;
       log_cb(RETRO_LOG_INFO, "Pre-cache done.\n");
