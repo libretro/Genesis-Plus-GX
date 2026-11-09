@@ -86,6 +86,7 @@ static inline u16 FLIP16 (u16 b)
 int load_archive(char *filename, unsigned char *buffer, int maxsize, char *extension)
 {
   int size = 0;
+  size_t input_size;
   char in[CHUNKSIZE];
   char msg[64];
   char type[16];
@@ -141,16 +142,38 @@ int load_archive(char *filename, unsigned char *buffer, int maxsize, char *exten
   }
 
   /* Read first chunk */
-  fread(in, CHUNKSIZE, 1, fd);
+  input_size = fread(in, 1, CHUNKSIZE, fd);
 
   /* Detect Zip file */
-  if (memcmp(in, "PK", 2) == 0)
+  if ((input_size >= 2) && (memcmp(in, "PK", 2) == 0))
   {
     /* Inflate buffer */
     char out[CHUNKSIZE];
 
+    /* Check fixed-size local header */
+    if (input_size < sizeof(PKZIPHEADER))
+    {
+      fclose(fd);
+      GUI_WaitPrompt("Error","Invalid ZIP file");
+      SILENT = 0;
+      return 0;
+    }
+
     /* PKZip header pointer */
     PKZIPHEADER *pkzip = (PKZIPHEADER *) in;
+    size_t offset = sizeof(PKZIPHEADER);
+    size_t filename_length = FLIP16(pkzip->filenameLength);
+    size_t extra_length = FLIP16(pkzip->extraDataLength);
+
+    /* Check local header variable-length fields */
+    if ((filename_length > (input_size - offset)) ||
+        (extra_length > (input_size - offset - filename_length)))
+    {
+      fclose(fd);
+      GUI_WaitPrompt("Error","Invalid ZIP file");
+      SILENT = 0;
+      return 0;
+    }
 
     /* Retrieve uncompressed ROM size */
     size = FLIP32(pkzip->uncompressedSize);
@@ -189,20 +212,23 @@ int load_archive(char *filename, unsigned char *buffer, int maxsize, char *exten
       return 0;
     }
 
-    /* Compressed filename offset */
-    int offset = sizeof (PKZIPHEADER) + FLIP16(pkzip->filenameLength);
-    if (extension)
+    /* Compressed filename extension */
+    if (extension && (filename_length >= 3))
     {
-      memcpy(extension, &in[offset - 3], 3);
+      memcpy(extension, &in[offset + filename_length - 3], 3);
       extension[3] = 0;
+    }
+    else if (extension)
+    {
+      extension[0] = 0;
     }
 
     /* Initial Zip buffer offset */
-    offset += FLIP16(pkzip->extraDataLength);
+    offset += filename_length + extra_length;
     zs.next_in = (Bytef *)&in[offset];
 
     /* Initial Zip remaining chunk size */
-    zs.avail_in = CHUNKSIZE - offset;
+    zs.avail_in = input_size - offset;
 
     /* Initialize output size */
     size = 0;
@@ -217,7 +243,7 @@ int load_archive(char *filename, unsigned char *buffer, int maxsize, char *exten
         zs.next_out = (Bytef *) out;
         res = inflate(&zs, Z_NO_FLUSH);
 
-        if (res == Z_MEM_ERROR)
+        if ((res != Z_OK) && (res != Z_STREAM_END))
         {
           inflateEnd(&zs);
           fclose(fd);
@@ -244,9 +270,9 @@ int load_archive(char *filename, unsigned char *buffer, int maxsize, char *exten
       while ((zs.avail_out == 0) && (size < maxsize));
 
       /* Read next chunk of zipped data */
-      fread(in, CHUNKSIZE, 1, fd);
+      input_size = fread(in, 1, CHUNKSIZE, fd);
       zs.next_in = (Bytef *)&in[0];
-      zs.avail_in = CHUNKSIZE;
+      zs.avail_in = input_size;
     }
     while ((res != Z_STREAM_END) && (size < maxsize));
     inflateEnd (&zs);

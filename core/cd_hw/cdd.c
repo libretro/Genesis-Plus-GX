@@ -2,7 +2,7 @@
  *  Genesis Plus
  *  CD drive processor & CD-DA fader
  *
- *  Copyright (C) 2012-2025  Eke-Eke (Genesis Plus GX)
+ *  Copyright (C) 2012-2026  Eke-Eke (Genesis Plus GX)
  *
  *  Redistribution and use of this code or any derivative works are permitted
  *  provided that the following conditions are met:
@@ -287,7 +287,8 @@ int cdd_context_save(uint8 *state)
 
 int cdd_context_load(uint8 *state, char *version)
 {
-  unsigned int offset, lba, index;
+  unsigned int offset, index;
+  int lba;
   int bufferptr = 0;
   uint8 tmp8;
 
@@ -302,6 +303,18 @@ int cdd_context_load(uint8 *state, char *version)
   load_param(&tmp8, sizeof(tmp8));
   cdd.status = tmp8 & 0xf;
   cdd.pending = tmp8 >> 4;
+
+  /* reject invalid current track index */
+  if (index > cdd.toc.last)
+  {
+    return 0;
+  }
+
+  /* reject invalid sector position */
+  if ((lba < -150) || (lba > cdd.toc.end))
+  {
+    return 0;
+  }
 
   /* update current sector */
   cdd.lba = lba;
@@ -353,8 +366,8 @@ int cdd_context_load(uint8 *state, char *version)
 #if defined(USE_LIBCHDR)
       if (cdd.chd.file)
       {
-        /* CHD file offset */
-        cdd.chd.hunkofs = offset;
+        /* CHD file offset (aligned to 16-bit stereo samples) */
+        cdd.chd.hunkofs = offset & 0xfffffffc;
       }
       else
 #endif
@@ -415,7 +428,13 @@ int cdd_load(char *filename, char *header)
   {
     int sectors = 0;
     char metadata[256];
+    uint32 metadata_length;
     const chd_header *head;
+    static const char track_metadata_format[] =
+      "TRACK:%d TYPE:%15s SUBTYPE:%15s FRAMES:%d";
+    static const char track_metadata2_format[] =
+      "TRACK:%d TYPE:%15s SUBTYPE:%15s FRAMES:%d PREGAP:%d "
+      "PGTYPE:%15s PGSUB:%15s POSTGAP:%d";
 
     /* open CHD file */
     if (chd_open_file(fd, CHD_OPEN_READ, NULL, &cdd.chd.file) != CHDERR_NONE)
@@ -469,14 +488,26 @@ int cdd_load(char *filename, char *header)
       type[0] = subtype[0] = pgtype[0] = pgsub[0] = 0;
 
       /* attempt fetch either complete or partial metadata for current track */
-      if (chd_get_metadata(cdd.chd.file, CDROM_TRACK_METADATA2_TAG, cdd.toc.last, metadata, 256, 0, 0, 0) == CHDERR_NONE)
+      if (chd_get_metadata(cdd.chd.file, CDROM_TRACK_METADATA2_TAG,
+          cdd.toc.last, metadata, sizeof(metadata) - 1, &metadata_length,
+          0, 0) == CHDERR_NONE)
       {
-        if (sscanf(metadata, CDROM_TRACK_METADATA2_FORMAT, &tracknum, &type[0], &subtype[0], &frames, &pregap, &pgtype[0], &pgsub[0], &postgap) != 8)
+        if (metadata_length >= sizeof(metadata))
+          break;
+        metadata[metadata_length] = 0;
+        if (sscanf(metadata, track_metadata2_format, &tracknum, &type[0],
+            &subtype[0], &frames, &pregap, &pgtype[0], &pgsub[0], &postgap) != 8)
           break;
       }
-      else if (chd_get_metadata(cdd.chd.file, CDROM_TRACK_METADATA_TAG, cdd.toc.last, metadata, 256, 0, 0, 0) == CHDERR_NONE)
+      else if (chd_get_metadata(cdd.chd.file, CDROM_TRACK_METADATA_TAG,
+          cdd.toc.last, metadata, sizeof(metadata) - 1, &metadata_length,
+          0, 0) == CHDERR_NONE)
       {
-        if (sscanf(metadata, CDROM_TRACK_METADATA_FORMAT, &tracknum, &type[0], &subtype[0], &frames) != 4)
+        if (metadata_length >= sizeof(metadata))
+          break;
+        metadata[metadata_length] = 0;
+        if (sscanf(metadata, track_metadata_format, &tracknum, &type[0],
+            &subtype[0], &frames) != 4)
           break;
       }
 
@@ -562,7 +593,7 @@ int cdd_load(char *filename, char *header)
     }
 
     /* valid CD image ? */
-    if (cdd.toc.last && (cdd.toc.end < (100*60*75)))
+    if (cdd.toc.last && (cdd.toc.end <= (99*60*75)))
     {
       /* Lead-out */
       cdd.toc.tracks[cdd.toc.last].start = cdd.toc.end;
@@ -1136,9 +1167,9 @@ int cdd_load(char *filename, char *header)
         /* auto-detect PAUSE within audio files */
         ov_pcm_seek(&cdd.toc.tracks[cdd.toc.last].vf, 100 * 588);
 #if defined(USE_LIBVORBIS)
-        ov_read(&cdd.toc.tracks[cdd.toc.last].vf, (char *)head, 32, 0, 2, 1, 0);
+        ov_read(&cdd.toc.tracks[cdd.toc.last].vf, (char *)head, 4, 0, 2, 1, 0);
 #else
-        ov_read(&cdd.toc.tracks[cdd.toc.last].vf, (char *)head, 32, 0);
+        ov_read(&cdd.toc.tracks[cdd.toc.last].vf, (char *)head, 4, 0);
 #endif
         ov_pcm_seek(&cdd.toc.tracks[cdd.toc.last].vf, 0);
         if (*(int32 *)head == 0)
@@ -1282,8 +1313,8 @@ int cdd_load(char *filename, char *header)
 
   }
 
-  /* CD tracks found ? */
-  if (cdd.toc.last)
+  /* valid CD image ? */
+  if (cdd.toc.last && (cdd.toc.end <= (99*60*75)))
   {
     /* Lead-out */
     cdd.toc.tracks[cdd.toc.last].start = cdd.toc.end;
@@ -1586,7 +1617,7 @@ void cdd_read_audio(unsigned int samples)
         cdd.chd.hunkofs += 4;
 
         /* detect end of sector data (2352 bytes) */
-        if ((cdd.chd.hunkofs % CD_FRAME_SIZE) == CD_MAX_SECTOR_DATA)
+        if ((cdd.chd.hunkofs % CD_FRAME_SIZE) >= CD_MAX_SECTOR_DATA)
         {
           /* skip subcode data (96 bytes) */
           cdd.chd.hunkofs += CD_MAX_SUBCODE_DATA;
@@ -1831,6 +1862,9 @@ void cdd_update(void)
   if (cdd.latency > 0)
   {
     cdd.latency--;
+
+    /* CDC decoder is still running while disc is seeking (fixes MCD-verificator CDC Init when higher latency is emulated) */
+    cdc_decoder_update(0);
   }
   else
   {
@@ -1986,6 +2020,12 @@ void cdd_update(void)
     int lba = ((scd.regs[0x44>>1].byte.h * 10 + scd.regs[0x44>>1].byte.l) * 60 + 
                (scd.regs[0x46>>1].byte.h * 10 + scd.regs[0x46>>1].byte.l)) * 75 +
                (scd.regs[0x48>>1].byte.h * 10 + scd.regs[0x48>>1].byte.l) - 150;
+
+    /* stay within the mounted disc */
+    if (lba > cdd.toc.end)
+    {
+      lba = cdd.toc.end;
+    }
 
     /* CD drive latency */
     if (!cdd.latency)
@@ -2194,13 +2234,25 @@ void cdd_process(void)
         case 0x05:  /* Track Start Time (MM:SS:FF) */
         {
           int track = scd.regs[0x46>>1].byte.h * 10 + scd.regs[0x46>>1].byte.l;
-          int lba = cdd.toc.tracks[track-1].start + 150;
-          scd.regs[0x38>>1].w = (cdd.status << 8) | 0x05;
-          scd.regs[0x3a>>1].w = lut_BCD_16[(lba/75)/60];
-          scd.regs[0x3c>>1].w = lut_BCD_16[(lba/75)%60];
-          scd.regs[0x3e>>1].w = lut_BCD_16[(lba%75)];
-          scd.regs[0x3e>>1].byte.h |= cdd.toc.tracks[track-1].type ? 0x08 : 0x00; /* RS6 bit 3 is set for CD-ROM track */
-          scd.regs[0x40>>1].byte.h = track % 10;  /* Track Number (low digit) */
+
+          if ((track > 0) && (track <= cdd.toc.last))
+          {
+            int lba = cdd.toc.tracks[track-1].start + 150;
+            scd.regs[0x38>>1].w = (cdd.status << 8) | 0x05;
+            scd.regs[0x3a>>1].w = lut_BCD_16[(lba/75)/60];
+            scd.regs[0x3c>>1].w = lut_BCD_16[(lba/75)%60];
+            scd.regs[0x3e>>1].w = lut_BCD_16[(lba%75)];
+            scd.regs[0x3e>>1].byte.h |= cdd.toc.tracks[track-1].type ? 0x08 : 0x00; /* RS6 bit 3 is set for CD-ROM track */
+            scd.regs[0x40>>1].byte.h = track % 10;  /* Track Number (low digit) */
+          }
+          else
+          {
+            scd.regs[0x38>>1].w = (cdd.status << 8) | 0x0f;
+            scd.regs[0x3a>>1].w = 0x0000;
+            scd.regs[0x3c>>1].w = 0x0000;
+            scd.regs[0x3e>>1].w = 0x0000;
+            scd.regs[0x40>>1].byte.h = 0x00;
+          }
           break;
         }
 

@@ -388,6 +388,7 @@ int slot_load(int slot, int device)
 {
   char filename[MAXPATHLEN];
   unsigned long filesize, done = 0;
+  u32 uncompressed_size;
   u8 *buffer;
 
   /* File Type */
@@ -506,6 +507,13 @@ int slot_load(int slot, int device)
 
     /* Get file size */
     filesize = CardFile.len;
+    if (filesize < (2048 + 64 + 4))
+    {
+      GUI_WaitPrompt("Error","Invalid save file !");
+      CARD_Close(&CardFile);
+      CARD_Unmount(device);
+      return 0;
+    }
     if (filesize % SectorSize)
     {
       filesize = ((filesize / SectorSize) + 1) * SectorSize;
@@ -522,14 +530,33 @@ int slot_load(int slot, int device)
     }
 
     /* Read file sectors */
-    CARD_Read(&CardFile, &in[done], filesize, done);
+    CardError = CARD_Read(&CardFile, &in[done], filesize, done);
 
     /* Close file */
     CARD_Close(&CardFile);
     CARD_Unmount(device);
 
+    if (CardError)
+    {
+      free(in);
+      GUI_WaitPrompt("Error","Unable to read save file !");
+      return 0;
+    }
+
+    /* Record validated input size */
+    done = filesize;
+
     /* Uncompressed file size */
-    memcpy(&filesize, in + 2112, 4);
+    memcpy(&uncompressed_size, in + 2112, sizeof(uncompressed_size));
+    if (!uncompressed_size || (uncompressed_size > ((slot > 0) ? STATE_SIZE : 0x10000)))
+    {
+      free(in);
+      GUI_WaitPrompt("Error","Invalid save file !");
+      return 0;
+    }
+
+    /* Allocate a full state buffer as state_load has no length argument */
+    filesize = (slot > 0) ? STATE_SIZE : uncompressed_size;
     buffer = (u8 *)memalign(32, filesize);
     if (!buffer)
     {
@@ -539,9 +566,19 @@ int slot_load(int slot, int device)
     }
 
     /* Uncompress file */
-    uncompress ((Bytef *)buffer, &filesize, (Bytef *)(in + 2112 + 4), done - 2112 - 4);
-    done = filesize;
+    memset(buffer, 0, filesize);
+    unsigned long output_size = filesize;
+    CardError = uncompress((Bytef *)buffer, &output_size, (Bytef *)(in + 2112 + 4), done - 2112 - 4);
     free(in);
+
+    if (CardError || (output_size != uncompressed_size))
+    {
+      free(buffer);
+      GUI_WaitPrompt("Error","Invalid save file !");
+      return 0;
+    }
+
+    done = output_size;
   }
 
   if (slot > 0)

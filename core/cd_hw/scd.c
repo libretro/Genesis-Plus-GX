@@ -58,7 +58,7 @@ static unsigned int s68k_read_bus_16(unsigned int address)
   error("[SUB 68k] Unused read16 %08X (%08X)\n", address, s68k.pc);
 #endif
   address = s68k.pc;
-  return *(uint16 *)(s68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff));
+  return *(uint16 *)(s68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xfffe));
 }
 
 static void s68k_unused_8_w(unsigned int address, unsigned int data)
@@ -231,7 +231,7 @@ static unsigned int prg_ram_m68k_read_word(unsigned int address)
     return m68k.memory_map[offset].read16(address);
   }
 
-  return *(uint16 *)(m68k.memory_map[offset].base + (address & 0xffff));
+  return *(uint16 *)(m68k.memory_map[offset].base + (address & 0xfffe));
 }
 
 static void prg_ram_m68k_write_byte(unsigned int address, unsigned int data)
@@ -258,7 +258,7 @@ static void prg_ram_m68k_write_word(unsigned int address, unsigned int data)
   }
   else
   {
-    *(uint16 *)(m68k.memory_map[offset].base + (address & 0xffff)) = data;
+    *(uint16 *)(m68k.memory_map[offset].base + (address & 0xfffe)) = data;
   }
 }
 
@@ -287,7 +287,7 @@ static void word_ram_z80_write_byte(unsigned int address, unsigned int data)
   }
   else
   {
-    *(uint16 *)(m68k.memory_map[offset].base + (address & 0xfffe)) = data | (data << 8);
+    WRITE_BYTE(m68k.memory_map[offset].base, address & 0xffff, data);
   }
 }
 
@@ -312,7 +312,7 @@ static unsigned int word_ram_m68k_read_word(unsigned int address)
     return m68k.memory_map[offset].read16(address);
   }
 
-  return *(uint16 *)(m68k.memory_map[offset].base + (address & 0xffff));
+  return *(uint16 *)(m68k.memory_map[offset].base + (address & 0xfffe));
 }
 
 static void word_ram_m68k_write_byte(unsigned int address, unsigned int data)
@@ -325,7 +325,7 @@ static void word_ram_m68k_write_byte(unsigned int address, unsigned int data)
   }
   else
   {
-    *(uint16 *)(m68k.memory_map[offset].base + (address & 0xfffe)) = data | (data << 8);
+    WRITE_BYTE(m68k.memory_map[offset].base, address & 0xffff, data);
   }
 }
 
@@ -339,7 +339,7 @@ static void word_ram_m68k_write_word(unsigned int address, unsigned int data)
   }
   else
   {
-    *(uint16 *)(m68k.memory_map[offset].base + (address & 0xffff)) = data;
+    *(uint16 *)(m68k.memory_map[offset].base + (address & 0xfffe)) = data;
   }
 }
 
@@ -364,7 +364,7 @@ static unsigned int word_ram_s68k_read_word(unsigned int address)
     return s68k.memory_map[offset].read16(address);
   }
 
-  return *(uint16 *)(s68k.memory_map[offset].base + (address & 0xffff));
+  return *(uint16 *)(s68k.memory_map[offset].base + (address & 0xfffe));
 }
 
 static void word_ram_s68k_write_byte(unsigned int address, unsigned int data)
@@ -377,7 +377,7 @@ static void word_ram_s68k_write_byte(unsigned int address, unsigned int data)
   }
   else
   {
-    *(uint16 *)(s68k.memory_map[offset].base + (address & 0xfffe)) = data | (data << 8);
+    WRITE_BYTE(s68k.memory_map[offset].base, address & 0xffff, data);
   }
 }
 
@@ -391,7 +391,7 @@ static void word_ram_s68k_write_word(unsigned int address, unsigned int data)
   }
   else
   {
-    *(uint16 *)(s68k.memory_map[offset].base + (address & 0xffff)) = data;
+    *(uint16 *)(s68k.memory_map[offset].base + (address & 0xfffe)) = data;
   }
 }
 
@@ -506,14 +506,16 @@ static void s68k_poll_sync(unsigned int reg_mask)
 
 static void m68k_sync(void)
 {
+  /* check MAIN-CPU is still running */
   if (!m68k.stopped)
   {
-    /* relative MAIN-CPU cycle counter */
-    unsigned int cycles = (s68k.cycles * MCYCLES_PER_LINE) / SCYCLES_PER_LINE;
-
-    /* sync MAIN-CPU with SUB-CPU (only if MAIN-CPU execution frame is finished, to prevent recursive execution) */
+    /* check MAIN-CPU execution frame is finished (to prevent recursive execution) */
     if (!m68k.cycle_end)
     {
+      /* relative MAIN-CPU cycle counter */
+      unsigned int cycles = (s68k.cycles * MCYCLES_PER_LINE) / SCYCLES_PER_LINE;
+
+      /* sync MAIN-CPU with SUB-CPU */
       m68k_run(cycles);
     }
   }
@@ -1082,14 +1084,19 @@ static void scd_write_byte(unsigned int address, unsigned int data)
     case 0x31: /* Timer */
     case 0x30: /* !LDS and !UDS are ignored (verified on real hardware, cf. Krikzz's mcd-verificator) */
     {
-      /* reload timer (one timer clock = 384 CPU cycles) */
-      scd.timer = data * TIMERS_SCYCLES_RATIO;
-
-      /* only non-zero data starts timer, writing zero stops it */
+      /* only non-zero value starts timer */
       if (data)
       {
+        /* reload timer (one timer clock = 384 CPU cycles, see also mcd-verificator REG 8030 test #7) */
+        scd.timer = (data + 1) * TIMERS_SCYCLES_RATIO;
+
         /* adjust regarding current CPU cycle */
         scd.timer += (s68k.cycles - scd.cycles);
+      }
+      else
+      {
+        /* writing zero stops timer */
+        scd.timer = 0;
       }
 
       scd.regs[0x30>>1].byte.l = data;
@@ -1446,14 +1453,19 @@ static void scd_write_word(unsigned int address, unsigned int data)
       /* LSB only */
       data &= 0xff;
 
-      /* reload timer (one timer clock = 384 CPU cycles) */
-      scd.timer = data * TIMERS_SCYCLES_RATIO;
-
-      /* only non-zero data starts timer, writing zero stops it */
+      /* only non-zero value starts timer */
       if (data)
       {
+        /* reload timer (one timer clock = 384 CPU cycles, see also mcd-verificator REG 8030 test #7) */
+        scd.timer = (data + 1) * TIMERS_SCYCLES_RATIO;
+
         /* adjust regarding current CPU cycle */
         scd.timer += (s68k.cycles - scd.cycles);
+      }
+      else
+      {
+        /* writing zero stops it */
+        scd.timer = 0;
       }
 
       scd.regs[0x30>>1].byte.l = data;
@@ -1940,7 +1952,7 @@ void scd_update(unsigned int cycles)
         /* pending level 4 interrupt */
         scd.pending |= (1 << 4);
 
-        /* level 4 interrupt enabled */
+        /* level 4 interrupt enabled ? */
         if (scd.regs[0x32>>1].byte.l & 0x10)
         {
           /* update IRQ level */
@@ -1954,10 +1966,12 @@ void scd_update(unsigned int cycles)
     {
       /* decrement timer */
       scd.timer -= s68k_run_cycles;
+
+      /* timer elapsed ? */
       if (scd.timer <= 0)
       {
-        /* reload timer (one timer clock = 384 CPU cycles) */
-        scd.timer += (scd.regs[0x30>>1].byte.l * TIMERS_SCYCLES_RATIO);
+        /* reload timer (one timer clock = 384 CPU cycles, see also mcd-verificator REG 8030 test #7) */
+        scd.timer += ((scd.regs[0x30>>1].byte.l + 1) * TIMERS_SCYCLES_RATIO);
 
         /* level 3 interrupt enabled ? */
         if (scd.regs[0x32>>1].byte.l & 0x08)

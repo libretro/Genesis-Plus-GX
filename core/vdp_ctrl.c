@@ -5,7 +5,7 @@
  *  Support for SG-1000 (TMS99xx & 315-5066), Master System (315-5124 & 315-5246), Game Gear & Mega Drive VDP
  *
  *  Copyright (C) 1998-2003  Charles Mac Donald (original code)
- *  Copyright (C) 2007-2025  Eke-Eke (Genesis Plus GX)
+ *  Copyright (C) 2007-2026  Eke-Eke (Genesis Plus GX)
  *
  *  Redistribution and use of this code or any derivative works are permitted
  *  provided that the following conditions are met:
@@ -564,6 +564,7 @@ int vdp_context_load(uint8 *state)
   load_param(&status, sizeof(status));
   load_param(&dmafill, sizeof(dmafill));
   load_param(&fifo_idx, sizeof(fifo_idx));
+  fifo_idx = (unsigned int)fifo_idx & 3;
   load_param(&fifo, sizeof(fifo));
   load_param(&h_counter, sizeof(h_counter));
   load_param(&hint_pending, sizeof(hint_pending));
@@ -1168,8 +1169,13 @@ void vdp_sms_ctrl_w(unsigned int data)
             parse_satb = parse_satb_m4;
             render_obj = render_obj_m4;
 
-            /* force BG cache update*/
+            /* force BG cache update */
             bg_list_index = 0x200;
+            for (i=0;i<0x200;i++) 
+            {
+              bg_name_list[i] = i;
+              bg_name_dirty[i] = 0xFF;
+            }
           }
           else
           {
@@ -2169,16 +2175,16 @@ static void vdp_reg_w(unsigned int r, unsigned int d, unsigned int cycles)
           bitmap.viewport.w = max_sprite_pixels;
         }
 
-        /* Allow active screen width to be modified during first two lines (Bugs Bunny in Double Trouble) */
-        else if (v_counter <= 1)
+        /* Allow active screen width to be modified during first 3 lines (Bugs Bunny in Double Trouble) */
+        else if (v_counter <= 2)
         {
+          int i;
           bitmap.viewport.w = max_sprite_pixels;
 
           /* Redraw lines */
-          render_line(0);
-          if (v_counter)
+          for (i=0; i<=v_counter; i++)
           {
-            render_line(1);
+            render_line(i);
           }
         }
         else
@@ -2529,8 +2535,8 @@ static void vdp_68k_data_w_m5(unsigned int data)
 
 static unsigned int vdp_68k_data_r_m4(void)
 {
-  /* VRAM address (interleaved format) */
-  int index = ((addr << 1) & 0x3FC) | ((addr & 0x200) >> 8) | (addr & 0x3C00);
+  /* VRAM address */
+  int index = addr & 0x3FFE;
 
   /* Clear pending flag */
   pending = 0;
