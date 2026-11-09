@@ -99,6 +99,20 @@
   *out++ = PIXEL(r,g,b); \
 }
 
+#ifdef __LIBRETRO__
+#define STEREO_LAYER_WIDTH 2048
+#define STEREO_LAYER_HEIGHT 704
+extern int stereo_live;
+extern int stereo_live_lut_ready;
+extern int stereo_pitch;
+extern int stereo_enabled;
+extern int stereo_plane_a;
+extern int stereo_plane_b;
+extern int stereo_sprites;
+extern int stereo_swap;
+extern uint8 *stereo_data;
+#endif
+
 /* Global variables */
 extern uint16 spr_col;
 
