@@ -11,6 +11,10 @@ MAX_ROM_SIZE = 10485760
 
 CORE_DIR := .
 
+ifeq ($(ECHO),1)
+    E := 1
+endif
+
 SPACE :=
 SPACE := $(SPACE) $(SPACE)
 BACKSLASH :=
@@ -886,9 +890,11 @@ else
 all: $(TARGET)
 
 %.o: %.cpp
+	@$(if $(E), $(shell echo echo CXX $<),)
 	$(CXX) $(OBJOUT)$@ -c $< $(CXXFLAGS) $(LIBRETRO_CFLAGS)
 
 %.o: %.c
+	@$(if $(E), $(shell echo echo CC $<),)
 	$(CC) $(OBJOUT)$@ -c $< $(CFLAGS) $(LIBRETRO_CFLAGS)
 
 $(TARGET): $(OBJECTS)
