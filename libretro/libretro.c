@@ -3803,7 +3803,6 @@ static void check_system_specs(void)
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 {
-   (void)level;
    va_list va;
    va_start(va, fmt);
    vfprintf(stderr, fmt, va);
