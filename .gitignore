@@ -18,3 +18,6 @@ genesis_plus_gx_libretro.*
 *.o
 *.a
 *.so
+
+genesis_looking_glass_libretro.dylib
+/extras/stereo3d/.retroarch-live/
