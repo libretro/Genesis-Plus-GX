@@ -431,6 +431,15 @@ else ifeq ($(platform), switch)
    STATIC_LINKING_LINK=1
    MAX_ROM_SIZE = 33554432
 
+# Switch 2 (libounce)
+else ifeq ($(platform), libounce)
+   TARGET := $(TARGET_NAME)_libretro_$(platform).elf
+   CFLAGS += -DSWITCH -D__SWITCH2__
+   ENDIANNESS_DEFINES := -DLSB_FIRST -DBYTE_ORDER=LITTLE_ENDIAN
+   PLATFORM_DEFINES := -DHAVE_ZLIB -DENABLE_SUB_68K_ADDRESS_ERROR_EXCEPTIONS
+   SHARED := -Wl,--version-script=$(CORE_DIR)/libretro/link.T
+   LIBS :=
+
 # Nintendo Switch (libnx)
 else ifeq ($(platform), libnx)
    include $(DEVKITPRO)/libnx/switch_rules
@@ -894,6 +903,9 @@ ${LIBRARY_NAME}_FILES = $(SOURCES_C) $(SOURCES_CXX)
 ${LIBRARY_NAME}_LIBRARIES = m z
 include $(THEOS_MAKE_PATH)/library.mk
 else
+ifneq (,$(filter $(platform),switch2 libounce))
+include $(DEVKITPRO)/libounce/libounce-module.mk
+endif
 all: $(TARGET)
 
 %.o: %.cpp
