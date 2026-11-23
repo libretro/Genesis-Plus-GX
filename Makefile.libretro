@@ -434,10 +434,13 @@ else ifeq ($(platform), switch)
 # Switch 2 (libounce)
 else ifeq ($(platform), libounce)
    TARGET := $(TARGET_NAME)_libretro_$(platform).elf
+   include $(DEVKITPRO)/libounce/switch2_rules
+   fpic := $(SWITCH2_SHARED_ARCH)
    CFLAGS += -DSWITCH -D__SWITCH2__
    ENDIANNESS_DEFINES := -DLSB_FIRST -DBYTE_ORDER=LITTLE_ENDIAN
    PLATFORM_DEFINES := -DHAVE_ZLIB -DENABLE_SUB_68K_ADDRESS_ERROR_EXCEPTIONS
-   SHARED := -Wl,--version-script=$(CORE_DIR)/libretro/link.T
+   LDFLAGS += -specs=$(SWITCH2_SHARED_SPECS) $(SWITCH2_SHARED_LIBPATHS)
+   SHARED := -shared -Wl,-soname,$(TARGET:.elf=.nro) -Wl,--version-script=$(CORE_DIR)/libretro/link.T
    LIBS :=
 
 # Nintendo Switch (libnx)
@@ -903,10 +906,10 @@ ${LIBRARY_NAME}_FILES = $(SOURCES_C) $(SOURCES_CXX)
 ${LIBRARY_NAME}_LIBRARIES = m z
 include $(THEOS_MAKE_PATH)/library.mk
 else
-ifneq (,$(filter $(platform),switch2 libounce))
-include $(DEVKITPRO)/libounce/libounce-module.mk
-endif
 all: $(TARGET)
+ifeq ($(platform),libounce)
+all: $(TARGET:.elf=.nro)
+endif
 
 %.o: %.cpp
 	@$(if $(E), $(shell echo echo CXX $<),)
@@ -929,6 +932,9 @@ clean-objs:
 clean:
 	rm -f $(OBJECTS)
 	rm -f $(TARGET)
+ifeq ($(platform),libounce)
+	rm -f $(TARGET:.elf=.nro)
+endif
 
 .PHONY: clean clean-objs
 endif
