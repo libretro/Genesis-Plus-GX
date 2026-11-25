@@ -439,7 +439,6 @@ else ifeq ($(platform), libounce)
    CFLAGS += -DSWITCH -D__SWITCH2__
    ENDIANNESS_DEFINES := -DLSB_FIRST -DBYTE_ORDER=LITTLE_ENDIAN
    PLATFORM_DEFINES := -DHAVE_ZLIB -DENABLE_SUB_68K_ADDRESS_ERROR_EXCEPTIONS
-   LDFLAGS += -specs=$(SWITCH2_SHARED_SPECS) $(SWITCH2_SHARED_LIBPATHS)
    SHARED := -shared -Wl,-soname,$(TARGET:.elf=.nro) -Wl,--version-script=$(CORE_DIR)/libretro/link.T
    LIBS :=
 
