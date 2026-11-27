@@ -3739,6 +3739,8 @@ void *retro_get_memory_data(unsigned id)
          return sram.on ? sram.sram : NULL;
       case RETRO_MEMORY_SYSTEM_RAM:
          return work_ram;
+      case RETRO_MEMORY_VIDEO_RAM:
+         return vram;
       default:
          return NULL;
    }
@@ -3788,6 +3790,14 @@ size_t retro_get_memory_size(unsigned id)
             return 0x0400; /* 1KB internal RAM */
          else
             return 0x2000; /* 8KB internal RAM */
+      }
+
+      case RETRO_MEMORY_VIDEO_RAM:
+      {
+         /* VDP VRAM: 16-bit words in host byte order (as for work RAM) */
+         if ((system_hw & SYSTEM_PBC) == SYSTEM_MD)
+            return 0x10000; /* 64KB */
+         return 0x4000; /* 16KB on 8-bit systems */
       }
 
       default:
